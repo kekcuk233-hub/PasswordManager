@@ -312,11 +312,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/chiba/projects/passwordManager/passwordManager/passwordManager.csproj",
+      "projectUniqueName": "/home/chiba/projects/passwordManager/PasswordManager/passwordManager.csproj",
       "projectName": "passwordManager",
-      "projectPath": "/home/chiba/projects/passwordManager/passwordManager/passwordManager.csproj",
+      "projectPath": "/home/chiba/projects/passwordManager/PasswordManager/passwordManager.csproj",
       "packagesPath": "/home/chiba/.nuget/packages/",
-      "outputPath": "/home/chiba/projects/passwordManager/passwordManager/obj/",
+      "outputPath": "/home/chiba/projects/passwordManager/PasswordManager/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/chiba/.nuget/NuGet/NuGet.Config"

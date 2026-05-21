@@ -1,58 +1,76 @@
-using PasswordManager.Models;
+using PasswordManager.Models.Base;
 using Microsoft.Data.Sqlite;
+using PasswordManager.Models.UserData;
 
 namespace PasswordManager.Services
 {
     public class UserActions{
-        static private readonly string DataBase = @"DataSource=DataBase/passwords.db";
-        static public void CreateDb(){
+        //static private readonly string DataBase = @"DataSource=DataBase/passwords.db";
+
+        static private readonly string PasswordTable = "Passwords";
+        static private readonly List<string> DbFields = new List<string>
+        {
+            "Website",
+            "Email",
+            "Password",
+            "Url",
+            "Description",
+            "Category",
+            "CreationDate",
+            "LastModifiedDate"
+        };
+         static public void CreateDb(){
             
-            var sql = @"Create Table Passwords(
-            id integer Primary Key
-            , Website Text
-            , Email text not null
-            , Password text not null
-            , Description
+            var sql = $@"Create Table Passwords(
+            id integer Primary Key,
+            {DbFields[0]} text not null,
+            {DbFields[1]} text not null,
+            {DbFields[2]} text not null,
+            {DbFields[3]} text,
+            {DbFields[4]} text,
+            {DbFields[5]} text,
+            {DbFields[6]} text,
+            {DbFields[7]} text
             )";
 
-            try
-            {
-                using var connection = new SqliteConnection(DataBase);
-                connection.Open();
+            // try
+            // {
+            //     using var connection = new SqliteConnection(DataBase);
+            //     connection.Open();
 
-                using var command = new SqliteCommand(sql,connection);
-                command.ExecuteNonQuery();
+            //     using var command = new SqliteCommand(sql,connection);
+            //     command.ExecuteNonQuery();
 
-                Console.WriteLine("Table created successfully");
+            //     Console.WriteLine("Table created successfully");
 
-            }
-            catch (SqliteException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            // }
+            // catch (SqliteException ex)
+            // {
+            //     Console.WriteLine(ex.Message);
+            // }
         }
 
         static public void GetData()
         {
-            string getDataSqlCommnd = @"select * from Passwords";
+            string getDataSqlCommnd = $"select * from {PasswordTable}";
 
-            using (var db = new SqliteConnection(DataBase))
-            {
-                db.Open();
-                using var command = new SqliteCommand(getDataSqlCommnd, db);
+            // using (var db = new SqliteConnection(DataBase))
+            // {
+            //     db.Open();
+            //     using var command = new SqliteCommand(getDataSqlCommnd, db);
 
-                using var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    Console.WriteLine($"ID: {reader["id"]} " +
-                  $"Website: {reader["Website"]} " +
-                  $"Email: {reader["Email"]} " + 
-                  $"Password: {reader["Password"]} ");
-                }
-            }
+            //     using var reader = command.ExecuteReader();
+            //     while (reader.Read())
+            //     {
+            //         Console.WriteLine($"ID: {reader["id"]} " +
+            //       $"Website: {reader["Website"]} " +
+            //       $"Email: {reader["Email"]} " + 
+            //       $"Password: {reader["Password"]} ");
+            //     }
+            // }
         }
 
-        static public ResponseMsg AddData(UserDataDto data)
+        static public ResponseMsg AddData(CoreDataModel data)
         {
             if (string.IsNullOrWhiteSpace(data.Password))
             {
@@ -81,22 +99,26 @@ namespace PasswordManager.Services
                 };
             }
 
-            string addNewDataCommand = "Insert INTO Passwords(Website, Email, Password, Description)" + 
-            "Values(@Website, @Email, @Password, @Description)";
+            var columns = string.Join(", ", DbFields.Select(f => $"[{f}]"));
+            var values = string.Join(", ", DbFields.Select(c => $"@{c}"));
+            string addNewDataCommand = $"INSERT INTO {PasswordTable}({columns}) VALUES({values})";
+            
 
-            using(var db = new SqliteConnection(DataBase))
-            {
-                db.Open();
+            // using(var db = new SqliteConnection(DataBase))
+            // {
+            //     db.Open();
 
-                var command = new SqliteCommand(addNewDataCommand, db);
+            //     var command = new SqliteCommand(addNewDataCommand, db);
 
-                command.Parameters.AddWithValue("@Website", data.Website);
-                command.Parameters.AddWithValue("@Email", data.Email);
-                command.Parameters.AddWithValue("@Password", data.Password);
-                command.Parameters.AddWithValue("@Description", data.Description);
+            //     foreach (var field in DbFields)
+            //     {
+            //         var value = data.GetType().GetProperty(field)?.GetValue(data) ?? DBNull.Value;
+            //         Console.WriteLine(value);
+            //         command.Parameters.AddWithValue($"@{field}", value);
+            //     }
 
-                command.ExecuteNonQuery();
-            }
+            //     command.ExecuteNonQuery();
+            // }
 
             return new ResponseMsg{IsSuccess = true, Message="Data was added successfully"};
         }

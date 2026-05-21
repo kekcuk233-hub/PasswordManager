@@ -1,50 +1,8 @@
-﻿using System.Formats.Asn1;
-using System.Reflection.Metadata;
-using PasswordManager.Models;
-using PasswordManager.Services;
+﻿using PasswordManager.Core;
+using PasswordManager.DataBase;
 
-Console.WriteLine("Password Manager");
+var container = new DependencyContainer("data.db");
 
-bool flag = true;
+new DataBaseInitializer(container.DbContext).Initialize();
 
-while(flag){
-    string actions = """ 
-    "Choose action: 
-    1. Add new data 
-    2. Check all data 
-    3. Close app
-    """;
-    Console.WriteLine(actions);
-    string choice = Console.ReadLine();
-    if (int.TryParse(choice, out int result))
-    {
-        switch(result)
-        {
-            case 1:
-                UserDataDto userData = new();
-                Console.WriteLine("Add Data");
-                Console.WriteLine("Write Website: ");
-                userData.Website = Console.ReadLine();
-                Console.WriteLine("Write Email: ");
-                userData.Email = Console.ReadLine();
-                Console.WriteLine("Write Password: ");
-                userData.Password = Console.ReadLine();
-                Console.WriteLine("Write Description: ");
-                userData.Description = Console.ReadLine();
-                ResponseMsg answer = UserActions.AddData(userData);
-                Console.WriteLine(answer.Message);
-                break;
-            case 2:
-                UserActions.GetData();
-                break;
-            case 3:
-                Console.WriteLine("Exit");
-                flag = false;
-                break;
-            default:
-                Console.WriteLine("Invalid number");
-                break;
-        }
-    }
-    else{Console.WriteLine("Invalid number");}
-    }
+new AppRunner(container).Run();
