@@ -6,6 +6,6 @@ namespace PasswordManager.Models.Userdata
     {
         public int Id {get; set;}
         public required string Category {get; set;}
-        public List<CoreDataModel> Models {get; set;} = new();
+        public List<CoreDataModel> Models {get; set;} = [];
     }
 }

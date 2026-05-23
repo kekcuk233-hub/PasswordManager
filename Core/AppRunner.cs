@@ -1,13 +1,14 @@
 using PasswordManager.Models.Base;
-using PasswordManager.Services;
 using PasswordManager.Models.UserData;
 using PasswordManager.Core;
+using PasswordManager.Services;
+using PasswordManager.Models.DTO;
 
 namespace PasswordManager.Core
 {
     public class AppRunner(DependencyContainer container)
     {
-        private DependencyContainer _container = container;
+        private readonly IVaultService _vaultService = container.VaultService;
         public void Run()
         {
             Console.WriteLine("Password Manager");
@@ -20,7 +21,8 @@ namespace PasswordManager.Core
                 "Choose action: 
                 1. Add new data 
                 2. Check all data 
-                3. Close app
+                3. Update Data
+                4. Close app
                 """;
                 Console.WriteLine(actions);
                 string choice = Console.ReadLine();
@@ -39,13 +41,36 @@ namespace PasswordManager.Core
                             userData.Password = Console.ReadLine();
                             Console.WriteLine("Write Description: ");
                             userData.Description = Console.ReadLine();
-                            ResponseMsg answer = UserActions.AddData(userData);
+                            ResponseMsg answer = _vaultService.AddEntry(userData);
                             Console.WriteLine(answer.Message);
                             break;
                         case 2:
-                            UserActions.GetData();
+                            List<CoreDataModel> data = _vaultService.GetAllEntries();
+                            foreach (var d in data)
+                            {
+                                Console.WriteLine($"Id:{d.Id}, Website: {d.Website}, Email: {d.Email}, Password: {d.Password}, Description: {d.Description}");
+                            }
                             break;
                         case 3:
+                            Console.WriteLine("Write id of the desired data to update");
+                            string sid = Console.ReadLine();
+                            if(int.TryParse(sid, out int id))
+                            {
+                                UpdateDto updateData = new();
+                                Console.WriteLine("Add Data");
+                                Console.WriteLine("Write Website: ");
+                                updateData.Website = Console.ReadLine();
+                                Console.WriteLine("Write Email: ");
+                                updateData.Email = Console.ReadLine();
+                                Console.WriteLine("Write Password: ");
+                                updateData.Password = Console.ReadLine();
+                                Console.WriteLine("Write Description: ");
+                                updateData.Description = Console.ReadLine();
+                                ResponseMsg answer1 = _vaultService.UpdateEntry(id, updateData);
+                                Console.WriteLine(answer1.Message);
+                            }
+                            break;
+                        case 4:
                             Console.WriteLine("Exit");
                             flag = false;
                             break;

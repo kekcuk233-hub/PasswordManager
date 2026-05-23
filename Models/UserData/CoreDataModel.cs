@@ -10,8 +10,8 @@ namespace PasswordManager.Models.UserData
         public string Password {get; set;} 
         public string? Url {get; set;}
         public string? Description {get; set;}
-        public int CategoryId {get; set;} //I need to make foreign key for link many-to-one
-        public CategoryData? Category {get; set;}
+        //public int CategoryId {get; set;} //I need to make foreign key for link many-to-one
+        public string? Category {get; set;}
         public DateTime CreationDate {get; set;} = DateTime.UtcNow;
         public DateTime LastModifiedDate {get; set;} = DateTime.UtcNow;
     }
