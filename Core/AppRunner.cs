@@ -1,14 +1,16 @@
 using PasswordManager.Models.Base;
 using PasswordManager.Models.UserData;
-using PasswordManager.Core;
 using PasswordManager.Services;
 using PasswordManager.Models.DTO;
+using PasswordManager.UI;
 
 namespace PasswordManager.Core
 {
     public class AppRunner(DependencyContainer container)
     {
         private readonly IVaultService _vaultService = container.VaultService;
+        private readonly ConsoleMenu _menu = new ConsoleMenu();
+        private readonly ConsoleDisplayHelper _display = new ConsoleDisplayHelper();
         public void Run()
         {
             Console.WriteLine("Password Manager");
@@ -22,7 +24,8 @@ namespace PasswordManager.Core
                 1. Add new data 
                 2. Check all data 
                 3. Update Data
-                4. Close app
+                4. Delete data
+                5. Close app
                 """;
                 Console.WriteLine(actions);
                 string choice = Console.ReadLine();
@@ -41,12 +44,12 @@ namespace PasswordManager.Core
                             userData.Password = Console.ReadLine();
                             Console.WriteLine("Write Description: ");
                             userData.Description = Console.ReadLine();
-                            ResponseMsg answer = _vaultService.AddEntry(userData);
+                            ResponseMsg<CoreDataModel> answer = _vaultService.AddEntry(userData);
                             Console.WriteLine(answer.Message);
                             break;
                         case 2:
-                            List<CoreDataModel> data = _vaultService.GetAllEntries();
-                            foreach (var d in data)
+                            ResponseMsg<List<CoreDataModel>> data = _vaultService.GetAllEntries();
+                            foreach (var d in data.Data)
                             {
                                 Console.WriteLine($"Id:{d.Id}, Website: {d.Website}, Email: {d.Email}, Password: {d.Password}, Description: {d.Description}");
                             }
@@ -66,11 +69,20 @@ namespace PasswordManager.Core
                                 updateData.Password = Console.ReadLine();
                                 Console.WriteLine("Write Description: ");
                                 updateData.Description = Console.ReadLine();
-                                ResponseMsg answer1 = _vaultService.UpdateEntry(id, updateData);
+                                ResponseMsg<CoreDataModel> answer1 = _vaultService.UpdateEntry(id, updateData);
                                 Console.WriteLine(answer1.Message);
                             }
                             break;
                         case 4:
+                            Console.WriteLine("Write Id to delete");
+                            string sidDelete = Console.ReadLine();
+                            if(int.TryParse(sidDelete, out int delid))
+                            {
+                                ResponseMsg<CoreDataModel> answer2 = _vaultService.DeleteEntry(delid);
+                                Console.WriteLine(answer2.Message);
+                            }
+                            break;
+                        case 5:
                             Console.WriteLine("Exit");
                             flag = false;
                             break;

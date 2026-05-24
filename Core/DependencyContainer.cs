@@ -8,13 +8,15 @@ namespace PasswordManager.Core
     {
         public DataBaseContext DbContext {get; }
         public IEntryRepository EntryRepo {get; }
+        public ICategoryRepository CategoryRepo {get; }
         public IVaultService VaultService {get;}
 
         public DependencyContainer(string dbPath)
         {
             DbContext = new DataBaseContext(dbPath);
             EntryRepo = new EntryRepository(DbContext);
-            VaultService = new VaultService(EntryRepo);
+            CategoryRepo = new CategoryRepository(DbContext);
+            VaultService = new VaultService(EntryRepo, CategoryRepo);
         }
     }
 }

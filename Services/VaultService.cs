@@ -8,26 +8,29 @@ namespace PasswordManager.Services
     public class VaultService : IVaultService
     {
         private readonly IEntryRepository _entryRepo; 
+        private readonly ICategoryRepository _categoryRepo;
 
-        public VaultService(IEntryRepository entry)
+        public VaultService(IEntryRepository entry, ICategoryRepository category)
         {
             _entryRepo = entry;
+            _categoryRepo = category;
         }
 
-        public ResponseMsg AddEntry(CoreDataModel data)
+        public ResponseMsg<CoreDataModel> AddEntry(CoreDataModel data)
         {
             if(string.IsNullOrWhiteSpace(data.Website))
             {
-                return new ResponseMsg
+                return new ResponseMsg<CoreDataModel>
                 {
                     IsSuccess = false,
-                    Message = "Please, provide Website name"
+                    Message = "Please, provide Website name",
+                    Data = null
                 };
             }
 
             if(string.IsNullOrWhiteSpace(data.Email))
             {
-                return new ResponseMsg
+                return new ResponseMsg<CoreDataModel>
                 {
                     IsSuccess = false,
                     Message = "Please, provide Email/Username"
@@ -36,26 +39,35 @@ namespace PasswordManager.Services
 
             if(string.IsNullOrWhiteSpace(data.Password))
             {
-                return new ResponseMsg
+                return new ResponseMsg<CoreDataModel>
                 {
                     IsSuccess = false,
                     Message = "Please, provide a strong password or generate it"
                 };
             }
 
+            if(!data.CategoryId.HasValue)
+            {
+                var categoryResponse = _categoryRepo.Get(1);
+                if(categoryResponse.IsSuccess && categoryResponse.Data != null)
+                {
+                    data.CategoryId = categoryResponse.Data.Id;
+                }
+            }
+
             return _entryRepo.Insert(data);
         }
 
-        public List<CoreDataModel> GetAllEntries()
+        public ResponseMsg<List<CoreDataModel>> GetAllEntries()
         {
             return _entryRepo.GetAll();
         }
 
-        public ResponseMsg UpdateEntry(int id, UpdateDto updateDto)
+        public ResponseMsg<CoreDataModel> UpdateEntry(int id, UpdateDto updateDto)
         {
             if(string.IsNullOrWhiteSpace(updateDto.Website))
             {
-                return new ResponseMsg
+                return new ResponseMsg<CoreDataModel>
                 {
                     IsSuccess = false,
                     Message = "Please, provide Website name"
@@ -64,7 +76,7 @@ namespace PasswordManager.Services
 
             if(string.IsNullOrWhiteSpace(updateDto.Email))
             {
-                return new ResponseMsg
+                return new ResponseMsg<CoreDataModel>
                 {
                     IsSuccess = false,
                     Message = "Please, provide Email/Username"
@@ -73,7 +85,7 @@ namespace PasswordManager.Services
 
             if(string.IsNullOrWhiteSpace(updateDto.Password))
             {
-                return new ResponseMsg
+                return new ResponseMsg<CoreDataModel>
                 {
                     IsSuccess = false,
                     Message = "Please, provide a strong password or generate it"
@@ -81,6 +93,11 @@ namespace PasswordManager.Services
             }
 
             return _entryRepo.Update(id, updateDto);
+        }
+
+        public ResponseMsg<CoreDataModel> DeleteEntry(int id)
+        {
+            return _entryRepo.Delete(id);
         }
     }
 }

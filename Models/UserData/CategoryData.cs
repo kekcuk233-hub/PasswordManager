@@ -1,11 +1,11 @@
-using PasswordManager.Models.UserData;
 
-namespace PasswordManager.Models.Userdata
+namespace PasswordManager.Models.UserData
 {
     public class CategoryData
     {
         public int Id {get; set;}
-        public required string Category {get; set;}
-        public List<CoreDataModel> Models {get; set;} = [];
+        public string? CategoryName {get; set;}
+        public string? Icon {get; set;}
+        public List<CoreDataModel> Entries {get; set;} = [];
     }
 }
