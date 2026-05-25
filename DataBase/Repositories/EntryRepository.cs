@@ -69,6 +69,73 @@ namespace PasswordManager.DataBase.Repositories
             }
         }
 
+        public ResponseMsg<CoreDataModel> GetById(int id)
+        {
+            string idField = DbConstants.GetFieldName(DbConstants.PasswordFields.Id);
+
+            try
+            {
+                using var db = _context.CreateConnection();
+                db.Open();
+
+                var command = db.CreateCommand();
+                    command.CommandText = $@"select * from {DbConstants.PasswordTable} p 
+                    Left join {DbConstants.CategoryTable} c ON 
+                    p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} = 
+                    c.{DbConstants.GetFieldName(DbConstants.CategoryFields.Id)} 
+                    where p.{idField} = @{idField}";
+                
+                command.Parameters.AddWithValue($"@{idField}", id);
+
+                var reader = command.ExecuteReader();
+
+                if(reader.Read())
+                {
+                    CoreDataModel data = new()
+                    {
+                        Id = id,
+                        Website = reader.GetString(1),
+                        Email = reader.GetString(2),
+                        Password = reader.GetString(3),
+                        Url = reader.IsDBNull(4) ? null : reader.GetString(4),
+                        Description = reader.IsDBNull(5) ? null : reader.GetString(5),
+                        CategoryId = reader.IsDBNull(6) ? null : reader.GetInt32(6),
+                        Category = reader.IsDBNull(9) ? null : new CategoryData
+                        {
+                            Id = reader.GetInt32(9),
+                            CategoryName = reader.GetString(10),
+                            Icon = reader.IsDBNull(11) ? null : reader.GetString(11)
+                        },
+                        CreationDate = DateTime.Parse(reader.GetString(7)),
+                        LastModifiedDate = DateTime.Parse(reader.GetString(8))
+                    };
+
+                    return new ResponseMsg<CoreDataModel>
+                    {
+                        IsSuccess = true,
+                        Message = "User was found",
+                        Data = data
+                    };
+                }
+                else
+                {
+                    return new ResponseMsg<CoreDataModel>
+                    {
+                        IsSuccess = false,
+                        Message = "Data was not found"
+                    };
+                }
+                
+            }
+            catch(SqliteException ex)
+            {
+                return new ResponseMsg<CoreDataModel>
+                {
+                    IsSuccess = false, 
+                    Message = $"DataBase Error: {ex.Message}"
+                };
+            }
+        }
         public ResponseMsg<CoreDataModel> Insert(CoreDataModel data)
         {
             try
@@ -116,41 +183,60 @@ namespace PasswordManager.DataBase.Repositories
 
         public ResponseMsg<CoreDataModel> Update(int id, UpdateDto data)
         {
-            var updateFields = string.Join(", ", 
-            Enum.GetNames<DbConstants.PasswordFields>()
-                .Where(f => f != "Id")
-                .Where(f=> f != "CreationDate")
-                .Select(n => $"{n} = @{n}"));
-            string updateDataCommand = $"Update {DbConstants.PasswordTable} Set {updateFields} Where Id = @Id";
-
-            using var db = _context.CreateConnection();
-            db.Open();
-
-            var command = new SqliteCommand(updateDataCommand, db);
-            command.Parameters.AddWithValue("@Id", id);
-
-            foreach (var field in Enum.GetNames<DbConstants.PasswordFields>().Where(f => f != "Id").Where(f=> f != "CreationDate"))
+            try
             {
-                var value = data.GetType().GetProperty(field)?.GetValue(data) ?? DBNull.Value;
-                command.Parameters.AddWithValue($"@{field}", value);
+                var currentDataResponse = GetById(id);
+
+                if(!currentDataResponse.IsSuccess)
+                {
+                    return currentDataResponse;
+                }
+
+                var currentData = currentDataResponse.Data;
+
+                data.Website = data.Website ?? currentData.Website;
+                data.Email = data.Email ?? currentData.Email;
+                data.Password = data.Password ?? currentData.Password;
+                data.Url = data.Url ?? currentData.Url;
+                data.Description = data.Description ?? currentData.Description;
+                data.CategoryId = data.CategoryId ?? currentData.CategoryId;
+                data.LastModifiedDate = DateTime.UtcNow;
+
+                using var db = _context.CreateConnection();
+                db.Open();
+
+                var updateFields = string.Join(", ", 
+                Enum.GetNames<DbConstants.PasswordFields>()
+                    .Where(f => f != "Id")
+                    .Where(f=> f != "CreationDate")
+                    .Select(n => $"{n} = @{n}"));
+                string updateDataCommand = $"Update {DbConstants.PasswordTable} Set {updateFields} Where Id = @Id";
+
+                var command = new SqliteCommand(updateDataCommand, db);
+                command.Parameters.AddWithValue("@Id", id);
+
+                foreach (var field in Enum.GetNames<DbConstants.PasswordFields>().Where(f => f != "Id").Where(f=> f != "CreationDate"))
+                {
+                    var value = data.GetType().GetProperty(field)?.GetValue(data) ?? DBNull.Value;
+                    command.Parameters.AddWithValue($"@{field}", value);
+                }
+
+                var reader = command.ExecuteReader();
+
+                return new ResponseMsg<CoreDataModel>
+                {
+                    IsSuccess = true,
+                    Message = "Data was updated successfully"
+                };
             }
-
-            int result = command.ExecuteNonQuery();
-
-            if (result == 0)
+            catch(SqliteException ex)
             {
                 return new ResponseMsg<CoreDataModel>
                 {
                     IsSuccess = false,
-                    Message = "Data was not found"
+                    Message = $"DataBase Error: {ex.Message}"
                 };
             }
-
-            return new ResponseMsg<CoreDataModel>
-            {
-                IsSuccess = true,
-                Message = "Data was updated successfully"
-            };
         }
 
         public ResponseMsg<CoreDataModel> Delete(int id)

@@ -55,7 +55,22 @@ namespace PasswordManager.Services
                 }
             }
 
+            if(string.IsNullOrWhiteSpace(data.Url))
+            {
+                data.Url = null;
+            }
+
+            if(string.IsNullOrWhiteSpace(data.Description))
+            {
+                data.Description = null;
+            }
+
             return _entryRepo.Insert(data);
+        }
+
+        public ResponseMsg<CoreDataModel> GetEntryById(int id)
+        {
+            return _entryRepo.GetById(id);
         }
 
         public ResponseMsg<List<CoreDataModel>> GetAllEntries()

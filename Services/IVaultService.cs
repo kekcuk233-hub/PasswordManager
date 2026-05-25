@@ -7,6 +7,7 @@ namespace PasswordManager.Services
     public interface IVaultService
     {
         public ResponseMsg<CoreDataModel> AddEntry(CoreDataModel data);
+        public ResponseMsg<CoreDataModel> GetEntryById(int id);
         public ResponseMsg<List<CoreDataModel>> GetAllEntries();
         public ResponseMsg<CoreDataModel> UpdateEntry(int id, UpdateDto updateDto);
         public ResponseMsg<CoreDataModel> DeleteEntry(int id);

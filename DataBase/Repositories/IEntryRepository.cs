@@ -7,6 +7,7 @@ namespace PasswordManager.DataBase.Repositories
     public interface IEntryRepository
     {
         ResponseMsg<List<CoreDataModel>> GetAll();
+        ResponseMsg<CoreDataModel> GetById(int id);
         ResponseMsg<CoreDataModel> Insert(CoreDataModel data);
         ResponseMsg<CoreDataModel> Update(int id, UpdateDto data);
         ResponseMsg<CoreDataModel> Delete(int id);
