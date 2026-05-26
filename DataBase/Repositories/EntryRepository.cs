@@ -185,23 +185,6 @@ namespace PasswordManager.DataBase.Repositories
         {
             try
             {
-                var currentDataResponse = GetById(id);
-
-                if(!currentDataResponse.IsSuccess)
-                {
-                    return currentDataResponse;
-                }
-
-                var currentData = currentDataResponse.Data;
-
-                data.Website = data.Website ?? currentData.Website;
-                data.Email = data.Email ?? currentData.Email;
-                data.Password = data.Password ?? currentData.Password;
-                data.Url = data.Url ?? currentData.Url;
-                data.Description = data.Description ?? currentData.Description;
-                data.CategoryId = data.CategoryId ?? currentData.CategoryId;
-                data.LastModifiedDate = DateTime.UtcNow;
-
                 using var db = _context.CreateConnection();
                 db.Open();
 

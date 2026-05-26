@@ -80,32 +80,22 @@ namespace PasswordManager.Services
 
         public ResponseMsg<CoreDataModel> UpdateEntry(int id, UpdateDto updateDto)
         {
-            if(string.IsNullOrWhiteSpace(updateDto.Website))
-            {
-                return new ResponseMsg<CoreDataModel>
-                {
-                    IsSuccess = false,
-                    Message = "Please, provide Website name"
-                };
-            }
+            var currentDataResponse = GetEntryById(id);
 
-            if(string.IsNullOrWhiteSpace(updateDto.Email))
-            {
-                return new ResponseMsg<CoreDataModel>
+                if(!currentDataResponse.IsSuccess)
                 {
-                    IsSuccess = false,
-                    Message = "Please, provide Email/Username"
-                };
-            }
+                    return currentDataResponse;
+                }
 
-            if(string.IsNullOrWhiteSpace(updateDto.Password))
-            {
-                return new ResponseMsg<CoreDataModel>
-                {
-                    IsSuccess = false,
-                    Message = "Please, provide a strong password or generate it"
-                };
-            }
+                var currentData = currentDataResponse.Data;
+
+                updateDto.Website = string.IsNullOrWhiteSpace(updateDto.Website) ? currentData.Website : updateDto.Website;
+                updateDto.Email = string.IsNullOrWhiteSpace(updateDto.Email) ? currentData.Email : updateDto.Email;
+                updateDto.Password = string.IsNullOrWhiteSpace(updateDto.Password) ? currentData.Password : updateDto.Password;
+                updateDto.Url = string.IsNullOrWhiteSpace(updateDto.Url) ? currentData.Url : updateDto.Url;
+                updateDto.Description = string.IsNullOrWhiteSpace(updateDto.Description) ? currentData.Description : updateDto.Description;
+                updateDto.CategoryId = updateDto.CategoryId ?? currentData.CategoryId;
+                updateDto.LastModifiedDate = DateTime.UtcNow;
 
             return _entryRepo.Update(id, updateDto);
         }

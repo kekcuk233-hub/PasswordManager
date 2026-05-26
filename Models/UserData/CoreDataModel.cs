@@ -3,9 +3,9 @@ namespace PasswordManager.Models.UserData
     public class CoreDataModel
     {
         public int Id {get; set;}
-        public string Website {get;set;} 
-        public string Email {get; set;} 
-        public string Password {get; set;} 
+        public string Website {get;set;} = string.Empty;
+        public string Email {get; set;} = string.Empty;
+        public string Password {get; set;} = string.Empty;
         public string? Url {get; set;}
         public string? Description {get; set;}
         public int? CategoryId {get; set;} 
