@@ -7,6 +7,14 @@ namespace PasswordManager.DataBase.Repositories
     public class CategoryRepository(DataBaseContext context) : ICategoryRepository
     {
         private readonly DataBaseContext _context = context;
+
+        private static readonly string GetSql = $@"
+        select
+        {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)},
+        {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)},
+        {DbConstants.GetFieldName(DbConstants.CategoryFields.Icon)}
+        from {DbConstants.CategoryTable} 
+        where {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)} = {DbConstants.Param(DbConstants.CategoryFields.CategoryDataId)}";
         public ResponseMsg<CategoryData> Add()
         {
             throw new NotImplementedException();
@@ -24,26 +32,26 @@ namespace PasswordManager.DataBase.Repositories
 
         public ResponseMsg<CategoryData> Get(int id)
         {
-            string field = DbConstants.GetFieldName(DbConstants.CategoryFields.Id); 
-            string findById = $@"select * from {DbConstants.CategoryTable} 
-            where {field} = @{field}";
-
             try
             {
                 using var db = _context.CreateConnection();
-                db.Open();
 
-                var command = new SqliteCommand(findById, db);
-                command.Parameters.AddWithValue($"@{field}", id);
+                var command = db.CreateCommand();
+                command.CommandText = GetSql;
+                command.Parameters.AddWithValue($"{DbConstants.Param(DbConstants.CategoryFields.CategoryDataId)}", id);
                 var reader = command.ExecuteReader();
 
                 if (reader.Read())
                 {
+                    int categoryDataIdOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId));
+                    int categoryNameOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName));
+                    int categoryIconOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.Icon));
+
                     CategoryData data = new()
                     {
-                        Id = id,
-                        CategoryName = reader.IsDBNull(1) ? null : reader.GetString(1),
-                        Icon = reader.IsDBNull(2) ? null : reader.GetString(2)
+                        CategoryDataId = id,
+                        CategoryName = reader.GetString(categoryNameOrdinal),
+                        Icon = reader.GetString(categoryIconOrdinal)
                     };
 
                     return new ResponseMsg<CategoryData>

@@ -8,7 +8,16 @@ namespace PasswordManager.DataBase
 
         public SqliteConnection CreateConnection()
         {
-            return new SqliteConnection(_connectionString);
+            var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            using var fkCmd = new SqliteCommand("PRAGMA foreign_keys = ON;", connection);
+            fkCmd.ExecuteNonQuery();
+
+            using var walCmd = new SqliteCommand("PRAGMA journal_mode = WAL;", connection);
+            walCmd.ExecuteNonQuery();
+
+            return connection;
         }
     }
 }

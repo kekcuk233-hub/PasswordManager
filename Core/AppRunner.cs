@@ -49,10 +49,15 @@ namespace PasswordManager.Core
                             break;
                         case 2:
                             ResponseMsg<List<CoreDataModel>> data = _vaultService.GetAllEntries();
-                            foreach (var d in data.Data)
+                            Console.WriteLine(data.Message);
+                            if (data?.Data != null)
                             {
-                                Console.WriteLine($"Id:{d.Id}, Website: {d.Website}, Email: {d.Email}, Password: {d.Password}, Description: {d.Description}");
+                                foreach (var d in data.Data)
+                                {
+                                    Console.WriteLine($"Id:{d.PasswordId}, Website: {d.Website}, Email: {d.Email}, Password: {d.Password}, Description: {d.Description}");
+                                }
                             }
+                            else {Console.WriteLine("No current data in db");}
                             break;
                         case 3:
                             Console.WriteLine("Write id of the desired data to update");

@@ -7,6 +7,7 @@ namespace PasswordManager.Services
 {
     public class VaultService : IVaultService
     {
+        
         private readonly IEntryRepository _entryRepo; 
         private readonly ICategoryRepository _categoryRepo;
 
@@ -51,7 +52,7 @@ namespace PasswordManager.Services
                 var categoryResponse = _categoryRepo.Get(1);
                 if(categoryResponse.IsSuccess && categoryResponse.Data != null)
                 {
-                    data.CategoryId = categoryResponse.Data.Id;
+                    data.CategoryId = categoryResponse.Data.CategoryDataId;
                 }
             }
 
@@ -88,13 +89,13 @@ namespace PasswordManager.Services
                 }
 
                 var currentData = currentDataResponse.Data;
-
+                #nullable disable
                 updateDto.Website = string.IsNullOrWhiteSpace(updateDto.Website) ? currentData.Website : updateDto.Website;
                 updateDto.Email = string.IsNullOrWhiteSpace(updateDto.Email) ? currentData.Email : updateDto.Email;
                 updateDto.Password = string.IsNullOrWhiteSpace(updateDto.Password) ? currentData.Password : updateDto.Password;
                 updateDto.Url = string.IsNullOrWhiteSpace(updateDto.Url) ? currentData.Url : updateDto.Url;
                 updateDto.Description = string.IsNullOrWhiteSpace(updateDto.Description) ? currentData.Description : updateDto.Description;
-                updateDto.CategoryId = updateDto.CategoryId ?? currentData.CategoryId;
+                updateDto.CategoryId ??= currentData.CategoryId;
                 updateDto.LastModifiedDate = DateTime.UtcNow;
 
             return _entryRepo.Update(id, updateDto);

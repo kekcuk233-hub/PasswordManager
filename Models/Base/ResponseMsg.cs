@@ -1,6 +1,6 @@
 namespace PasswordManager.Models.Base
 {
-    public class ResponseMsg<T>
+    public class ResponseMsg<T> where T : class
     {
         public bool IsSuccess {get;set;}
         public string? Message {get; set;}

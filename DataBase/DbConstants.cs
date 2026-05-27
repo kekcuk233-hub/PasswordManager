@@ -7,7 +7,7 @@ namespace PasswordManager.DataBase
 
         public enum PasswordFields
         {
-            Id,
+            PasswordId,
             Website,
             Email,
             Password,
@@ -20,19 +20,15 @@ namespace PasswordManager.DataBase
 
         public enum CategoryFields
         {
-            Id,
+            CategoryDataId,
             CategoryName,
             Icon
         }
 
-        public static string GetFieldName(PasswordFields field)
-        {
-            return field.ToString();
-        }
+        public static string GetFieldName(PasswordFields field) => field.ToString();
+        public static string GetFieldName(CategoryFields field) => field.ToString();
 
-        public static string GetFieldName(CategoryFields field)
-        {
-            return field.ToString();
-        }
+        public static string Param(PasswordFields field) => $"@{field}";
+        public static string Param(CategoryFields field) => $"@{field}";
     }
 }

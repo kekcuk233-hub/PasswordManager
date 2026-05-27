@@ -2,7 +2,7 @@ namespace PasswordManager.Models.UserData
 {
     public class CoreDataModel
     {
-        public int Id {get; set;}
+        public int PasswordId {get; set;}
         public string Website {get;set;} = string.Empty;
         public string Email {get; set;} = string.Empty;
         public string Password {get; set;} = string.Empty;

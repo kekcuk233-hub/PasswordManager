@@ -8,31 +8,30 @@ namespace PasswordManager.DataBase
     {
         private readonly DataBaseContext _context = context;
 
+        private static readonly string sql = $@"
+            CREATE TABLE IF NOT EXISTS {DbConstants.CategoryTable}(
+                {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)} INTEGER PRIMARY KEY AUTOINCREMENT,
+                {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)} TEXT,
+                {DbConstants.GetFieldName(DbConstants.CategoryFields.Icon)} TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS {DbConstants.PasswordTable}(
+                {DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId)} INTEGER PRIMARY KEY AUTOINCREMENT,
+                {DbConstants.GetFieldName(DbConstants.PasswordFields.Website)} TEXT NOT NULL,
+                {DbConstants.GetFieldName(DbConstants.PasswordFields.Email)} TEXT NOT NULL,
+                {DbConstants.GetFieldName(DbConstants.PasswordFields.Password)} TEXT NOT NULL,
+                {DbConstants.GetFieldName(DbConstants.PasswordFields.Url)} TEXT,
+                {DbConstants.GetFieldName(DbConstants.PasswordFields.Description)} TEXT,
+                {DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} INTEGER not null,
+                {DbConstants.GetFieldName(DbConstants.PasswordFields.CreationDate)} TEXT NOT NULL,
+                {DbConstants.GetFieldName(DbConstants.PasswordFields.LastModifiedDate)} TEXT NOT NULL,
+                FOREIGN KEY ({DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)})
+                REFERENCES {DbConstants.CategoryTable}({DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)})
+            );";
+
         public void Initialize()
         {
             using var connection = _context.CreateConnection();
-            connection.Open();
-
-            var sql = $@"
-                CREATE TABLE IF NOT EXISTS {DbConstants.CategoryTable}(
-                    {DbConstants.GetFieldName(DbConstants.CategoryFields.Id)} INTEGER PRIMARY KEY AUTOINCREMENT,
-                    {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)} TEXT,
-                    {DbConstants.GetFieldName(DbConstants.CategoryFields.Icon)} TEXT
-                );
-
-                CREATE TABLE IF NOT EXISTS {DbConstants.PasswordTable}(
-                    {DbConstants.GetFieldName(DbConstants.PasswordFields.Id)} INTEGER PRIMARY KEY AUTOINCREMENT,
-                    {DbConstants.GetFieldName(DbConstants.PasswordFields.Website)} TEXT NOT NULL,
-                    {DbConstants.GetFieldName(DbConstants.PasswordFields.Email)} TEXT NOT NULL,
-                    {DbConstants.GetFieldName(DbConstants.PasswordFields.Password)} TEXT NOT NULL,
-                    {DbConstants.GetFieldName(DbConstants.PasswordFields.Url)} TEXT,
-                    {DbConstants.GetFieldName(DbConstants.PasswordFields.Description)} TEXT,
-                    {DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} INTEGER not null,
-                    {DbConstants.GetFieldName(DbConstants.PasswordFields.CreationDate)} TEXT NOT NULL,
-                    {DbConstants.GetFieldName(DbConstants.PasswordFields.LastModifiedDate)} TEXT NOT NULL,
-                    FOREIGN KEY ({DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)})
-                    REFERENCES {DbConstants.CategoryTable}({DbConstants.GetFieldName(DbConstants.CategoryFields.Id)})
-                );";
 
             using var command = new SqliteCommand(sql, connection);
             command.ExecuteNonQuery();

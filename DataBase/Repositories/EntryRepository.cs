@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Microsoft.Data.Sqlite;
 using PasswordManager.Models.Base;
 using PasswordManager.Models.DTO;
@@ -8,7 +9,81 @@ namespace PasswordManager.DataBase.Repositories
     public class EntryRepository : IEntryRepository
     {
         private readonly DataBaseContext _context;
+        private static readonly string GetByIdSql = $@"
+        SELECT
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Website)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Email)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Password)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Url)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Description)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CreationDate)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.LastModifiedDate)},
+            c.{DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)},
+            c.{DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)},
+            c.{DbConstants.GetFieldName(DbConstants.CategoryFields.Icon)} 
+        FROM {DbConstants.PasswordTable} p
+        LEFT JOIN {DbConstants.CategoryTable} c
+            ON p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} = 
+               c.{DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)}
+        WHERE p.{DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId)} = {DbConstants.Param(DbConstants.PasswordFields.PasswordId)}";
 
+        private static readonly string GetAllSql = $@"
+        SELECT
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Website)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Email)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Password)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Url)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Description)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CreationDate)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.LastModifiedDate)},
+            c.{DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)},
+            c.{DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)},
+            c.{DbConstants.GetFieldName(DbConstants.CategoryFields.Icon)} 
+        FROM {DbConstants.PasswordTable} p
+        LEFT JOIN {DbConstants.CategoryTable} c
+            ON p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} = 
+               c.{DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)}"; 
+        
+        private static readonly string InsertSql = $@"
+        INSERT INTO {DbConstants.PasswordTable} (
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.Website)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.Email)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.Password)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.Url)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.Description)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.CreationDate)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.LastModifiedDate)}
+        ) VALUES (
+            {DbConstants.Param(DbConstants.PasswordFields.Website)},
+            {DbConstants.Param(DbConstants.PasswordFields.Email)},
+            {DbConstants.Param(DbConstants.PasswordFields.Password)},
+            {DbConstants.Param(DbConstants.PasswordFields.Url)},
+            {DbConstants.Param(DbConstants.PasswordFields.Description)},
+            {DbConstants.Param(DbConstants.PasswordFields.CategoryId)},
+            {DbConstants.Param(DbConstants.PasswordFields.CreationDate)},
+            {DbConstants.Param(DbConstants.PasswordFields.LastModifiedDate)}
+        )";
+
+        private static readonly string UpdateSql = $@"
+        UPDATE {DbConstants.PasswordTable}
+        SET
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.Website)} = {DbConstants.Param(DbConstants.PasswordFields.Website)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.Email)} = {DbConstants.Param(DbConstants.PasswordFields.Email)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.Password)} = {DbConstants.Param(DbConstants.PasswordFields.Password)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.Url)} = {DbConstants.Param(DbConstants.PasswordFields.Url)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.Description)} = {DbConstants.Param(DbConstants.PasswordFields.Description)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} = {DbConstants.Param(DbConstants.PasswordFields.CategoryId)},
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.LastModifiedDate)} = {DbConstants.Param(DbConstants.PasswordFields.LastModifiedDate)}
+        WHERE {DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId)} = {DbConstants.Param(DbConstants.PasswordFields.PasswordId)}";
+
+        private static readonly string DeleteSql = $@"
+        Delete from {DbConstants.PasswordTable} where 
+        {DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId)} = {DbConstants.Param(DbConstants.PasswordFields.PasswordId)}";
         public EntryRepository(DataBaseContext context)
         {
             _context = context;
@@ -17,47 +92,57 @@ namespace PasswordManager.DataBase.Repositories
         public ResponseMsg<List<CoreDataModel>> GetAll()
         {
             List<CoreDataModel> listData= [];
+
             try {
                 using( var db = _context.CreateConnection())
                 {
-                    db.Open();
-
                     var command = db.CreateCommand();
-                    command.CommandText = $@"select * from {DbConstants.PasswordTable} p 
-                    Left join {DbConstants.CategoryTable} c ON 
-                    p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} = 
-                    c.{DbConstants.GetFieldName(DbConstants.CategoryFields.Id)}";
+                    command.CommandText = GetAllSql;
 
                     using var reader = command.ExecuteReader();
+
+                    int passwordIdOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId));
+                    int websiteOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Website));
+                    int emailOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Email));
+                    int passwordOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Password));
+                    int urlOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Url));
+                    int descriptionOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Description));
+                    int categoryIdOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId));
+                    int creationDateOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.CreationDate));
+                    int lastModifiedDateOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.LastModifiedDate));
+                    int categoryDataIdOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId));
+                    int categoryNameOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName));
+                    int categoryIconOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.Icon));
+                    
                     while (reader.Read())
                     {
                         CoreDataModel data = new()
                         {
-                            Id = reader.GetInt32(0),
-                            Website = reader.GetString(1),
-                            Email = reader.GetString(2),
-                            Password = reader.GetString(3),
-                            Url = reader.IsDBNull(4) ? null : reader.GetString(4),
-                            Description = reader.IsDBNull(5) ? null : reader.GetString(5),
-                            CategoryId = reader.IsDBNull(6) ? null : reader.GetInt32(6),
-                            Category = reader.IsDBNull(9) ? null : new CategoryData
+                            PasswordId = reader.GetInt32(passwordIdOrdinal),
+                            Website = reader.GetString(websiteOrdinal),
+                            Email = reader.GetString(emailOrdinal),
+                            Password = reader.GetString(passwordOrdinal),
+                            Url = reader.IsDBNull(urlOrdinal) ? null : reader.GetString(urlOrdinal),
+                            Description = reader.IsDBNull(descriptionOrdinal) ? null : reader.GetString(descriptionOrdinal),
+                            CategoryId = reader.IsDBNull(categoryIdOrdinal) ? null : reader.GetInt32(categoryIdOrdinal),
+                            Category = reader.IsDBNull(categoryDataIdOrdinal) ? null : new CategoryData
                             {
-                                Id = reader.GetInt32(9),
-                                CategoryName = reader.GetString(10),
-                                Icon = reader.IsDBNull(11) ? null : reader.GetString(11)
+                                CategoryDataId = reader.GetInt32(categoryDataIdOrdinal),
+                                CategoryName = reader.GetString(categoryNameOrdinal),
+                                Icon = reader.GetString(categoryIconOrdinal)
                             },
-                            CreationDate = DateTime.Parse(reader.GetString(7)),
-                            LastModifiedDate = DateTime.Parse(reader.GetString(8))
+                            CreationDate = DateTime.Parse(reader.GetString(creationDateOrdinal)),
+                            LastModifiedDate = DateTime.Parse(reader.GetString(lastModifiedDateOrdinal))
                         };
                         listData.Add(data);
                     }
+                    return new ResponseMsg<List<CoreDataModel>>
+                    {
+                        IsSuccess = true,
+                        Message = "Data retrieved successfully",
+                        Data = listData
+                    };
                 }
-                return new ResponseMsg<List<CoreDataModel>>
-                {
-                    IsSuccess = true,
-                    Message = "Data retrieved successfully",
-                    Data = listData
-                };
             }
             catch(SqliteException ex)
             {
@@ -67,53 +152,67 @@ namespace PasswordManager.DataBase.Repositories
                     Message = $"DataBase error: {ex.Message}"
                 };
             }
+            catch(Exception ex)
+            {
+                return new ResponseMsg<List<CoreDataModel>>
+                {
+                    IsSuccess = false,
+                    Message = $"Unexpected error: {ex.Message}"
+                };
+            }
         }
 
         public ResponseMsg<CoreDataModel> GetById(int id)
         {
-            string idField = DbConstants.GetFieldName(DbConstants.PasswordFields.Id);
-
             try
             {
                 using var db = _context.CreateConnection();
-                db.Open();
 
                 var command = db.CreateCommand();
-                    command.CommandText = $@"select * from {DbConstants.PasswordTable} p 
-                    Left join {DbConstants.CategoryTable} c ON 
-                    p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} = 
-                    c.{DbConstants.GetFieldName(DbConstants.CategoryFields.Id)} 
-                    where p.{idField} = @{idField}";
+                command.CommandText = GetByIdSql;
                 
-                command.Parameters.AddWithValue($"@{idField}", id);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.PasswordId), id);
 
-                var reader = command.ExecuteReader();
+                using var reader = command.ExecuteReader();
 
                 if(reader.Read())
                 {
+                    int passwordIdOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId));
+                    int websiteOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Website));
+                    int emailOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Email));
+                    int passwordOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Password));
+                    int urlOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Url));
+                    int descriptionOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Description));
+                    int categoryIdOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId));
+                    int creationDateOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.CreationDate));
+                    int lastModifiedDateOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.LastModifiedDate));
+                    int categoryDataIdOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId));
+                    int categoryNameOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName));
+                    int categoryIconOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.Icon));
+
                     CoreDataModel data = new()
                     {
-                        Id = id,
-                        Website = reader.GetString(1),
-                        Email = reader.GetString(2),
-                        Password = reader.GetString(3),
-                        Url = reader.IsDBNull(4) ? null : reader.GetString(4),
-                        Description = reader.IsDBNull(5) ? null : reader.GetString(5),
-                        CategoryId = reader.IsDBNull(6) ? null : reader.GetInt32(6),
-                        Category = reader.IsDBNull(9) ? null : new CategoryData
+                        PasswordId = reader.GetInt32(passwordIdOrdinal),
+                        Website = reader.GetString(websiteOrdinal),
+                        Email = reader.GetString(emailOrdinal),
+                        Password = reader.GetString(passwordOrdinal),
+                        Url = reader.IsDBNull(urlOrdinal) ? null : reader.GetString(urlOrdinal),
+                        Description = reader.IsDBNull(descriptionOrdinal) ? null : reader.GetString(descriptionOrdinal),
+                        CategoryId = reader.IsDBNull(categoryIdOrdinal) ? null : reader.GetInt32(categoryIdOrdinal),
+                        Category = reader.IsDBNull(categoryDataIdOrdinal) ? null : new CategoryData
                         {
-                            Id = reader.GetInt32(9),
-                            CategoryName = reader.GetString(10),
-                            Icon = reader.IsDBNull(11) ? null : reader.GetString(11)
+                            CategoryDataId = reader.GetInt32(categoryDataIdOrdinal),
+                            CategoryName = reader.GetString(categoryNameOrdinal),
+                            Icon = reader.GetString(categoryIconOrdinal)
                         },
-                        CreationDate = DateTime.Parse(reader.GetString(7)),
-                        LastModifiedDate = DateTime.Parse(reader.GetString(8))
+                        CreationDate = DateTime.Parse(reader.GetString(creationDateOrdinal)),
+                        LastModifiedDate = DateTime.Parse(reader.GetString(lastModifiedDateOrdinal))
                     };
 
                     return new ResponseMsg<CoreDataModel>
                     {
                         IsSuccess = true,
-                        Message = "User was found",
+                        Message = $"Entry with ID {id} retrieved successfully",
                         Data = data
                     };
                 }
@@ -122,7 +221,7 @@ namespace PasswordManager.DataBase.Repositories
                     return new ResponseMsg<CoreDataModel>
                     {
                         IsSuccess = false,
-                        Message = "Data was not found"
+                        Message = $"Entry with ID {id} was not found"
                     };
                 }
                 
@@ -135,35 +234,34 @@ namespace PasswordManager.DataBase.Repositories
                     Message = $"DataBase Error: {ex.Message}"
                 };
             }
+            catch(Exception ex)
+            {
+                return new ResponseMsg<CoreDataModel>
+                {
+                    IsSuccess = false,
+                    Message = $"Unexcpected Error occurred: {ex.Message}"
+                };
+            }
         }
         public ResponseMsg<CoreDataModel> Insert(CoreDataModel data)
         {
             try
-            {
-                var columns = string.Join(", ", 
-                    Enum.GetNames<DbConstants.PasswordFields>()
-                    .Where(f => f != "Id")
-                    .Select(n => $"{n}"));
-                var values = string.Join(", ", 
-                    Enum.GetNames<DbConstants.PasswordFields>()
-                    .Where(f => f != "Id")
-                    .Select(n => $"@{n}"));
-                string addNewDataCommand = $"Insert into {DbConstants.PasswordTable}({columns}) Values({values})";
-                
-                using (var db = _context.CreateConnection())
-                {
-                    db.Open();
+            {   
+                using var db = _context.CreateConnection();
 
-                    var command = new SqliteCommand(addNewDataCommand, db);
+                var command = db.CreateCommand();
+                command.CommandText = InsertSql;
 
-                    foreach (var field in Enum.GetNames<DbConstants.PasswordFields>())
-                    {
-                        var value = data.GetType().GetProperty(field)?.GetValue(data) ?? DBNull.Value;
-                        command.Parameters.AddWithValue($"@{field}", value);
-                    }
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.Website), data.Website);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.Email), data.Email);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.Password), data.Password);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.Url), data.Url ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.Description), data.Description ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.CategoryId), data.CategoryId ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.CreationDate), data.CreationDate.ToString("o"));
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.LastModifiedDate), data.LastModifiedDate.ToString("o"));
 
-                    command.ExecuteNonQuery();
-                }
+                command.ExecuteNonQuery();
                 
                 return new ResponseMsg<CoreDataModel>
                 {
@@ -179,32 +277,34 @@ namespace PasswordManager.DataBase.Repositories
                     Message = $"DataBase Error : {ex.Message}"
                 };
             }
+            catch(Exception ex)
+            {
+                return new ResponseMsg<CoreDataModel>
+                {
+                    IsSuccess = false,
+                    Message = $"Unexcpected Error occurred: {ex.Message}"
+                };
+            }
         }
-
         public ResponseMsg<CoreDataModel> Update(int id, UpdateDto data)
         {
             try
             {
                 using var db = _context.CreateConnection();
-                db.Open();
 
-                var updateFields = string.Join(", ", 
-                Enum.GetNames<DbConstants.PasswordFields>()
-                    .Where(f => f != "Id")
-                    .Where(f=> f != "CreationDate")
-                    .Select(n => $"{n} = @{n}"));
-                string updateDataCommand = $"Update {DbConstants.PasswordTable} Set {updateFields} Where Id = @Id";
+                var command = db.CreateCommand();
+                command.CommandText = UpdateSql;
+                command.Parameters.AddWithValue($"{DbConstants.Param(DbConstants.PasswordFields.PasswordId)}", id);
 
-                var command = new SqliteCommand(updateDataCommand, db);
-                command.Parameters.AddWithValue("@Id", id);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.Website), data.Website);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.Email), data.Email);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.Password), data.Password);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.Url), data.Url ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.Description), data.Description ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.CategoryId), data.CategoryId ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.LastModifiedDate), DateTime.Now.ToString("o"));
 
-                foreach (var field in Enum.GetNames<DbConstants.PasswordFields>().Where(f => f != "Id").Where(f=> f != "CreationDate"))
-                {
-                    var value = data.GetType().GetProperty(field)?.GetValue(data) ?? DBNull.Value;
-                    command.Parameters.AddWithValue($"@{field}", value);
-                }
-
-                var reader = command.ExecuteReader();
+                command.ExecuteNonQuery();
 
                 return new ResponseMsg<CoreDataModel>
                 {
@@ -220,19 +320,27 @@ namespace PasswordManager.DataBase.Repositories
                     Message = $"DataBase Error: {ex.Message}"
                 };
             }
+            catch(Exception ex)
+            {
+                return new ResponseMsg<CoreDataModel>
+                {
+                    IsSuccess = false,
+                    Message = $"Unexcpected Error occurred: {ex.Message}"
+                };
+            }
         }
 
         public ResponseMsg<CoreDataModel> Delete(int id)
         {
-            string deleteUserData = $"Delete from {DbConstants.PasswordTable} where Id = @Id";
-            using var db = _context.CreateConnection();
-
             try 
             {
-                db.Open();
-                var command = new SqliteCommand(deleteUserData, db);
-                command.Parameters.AddWithValue("@Id", id);
-                var result = command.ExecuteNonQuery();
+                using var db = _context.CreateConnection();
+
+                var command = db.CreateCommand();
+                command.CommandText = DeleteSql;
+                command.Parameters.AddWithValue($"{DbConstants.Param(DbConstants.PasswordFields.PasswordId)}", id);
+
+                command.ExecuteNonQuery();
 
                 return new ResponseMsg<CoreDataModel>
                 {
@@ -246,6 +354,14 @@ namespace PasswordManager.DataBase.Repositories
                 {
                     IsSuccess = false,
                     Message = $"DataBase Error : {ex.Message}"
+                };
+            }
+            catch(Exception ex)
+            {
+                return new ResponseMsg<CoreDataModel>
+                {
+                    IsSuccess = false,
+                    Message = $"Unexcpected Error occurred: {ex.Message}"
                 };
             }
         }
