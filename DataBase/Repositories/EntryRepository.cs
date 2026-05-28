@@ -129,7 +129,7 @@ namespace PasswordManager.DataBase.Repositories
                             {
                                 CategoryDataId = reader.GetInt32(categoryDataIdOrdinal),
                                 CategoryName = reader.GetString(categoryNameOrdinal),
-                                Icon = reader.GetString(categoryIconOrdinal)
+                                Icon = reader.IsDBNull(categoryIconOrdinal) ? null : reader.GetString(categoryIconOrdinal)
                             },
                             CreationDate = DateTime.Parse(reader.GetString(creationDateOrdinal)),
                             LastModifiedDate = DateTime.Parse(reader.GetString(lastModifiedDateOrdinal))
@@ -203,7 +203,7 @@ namespace PasswordManager.DataBase.Repositories
                         {
                             CategoryDataId = reader.GetInt32(categoryDataIdOrdinal),
                             CategoryName = reader.GetString(categoryNameOrdinal),
-                            Icon = reader.GetString(categoryIconOrdinal)
+                            Icon = reader.IsDBNull(categoryIconOrdinal) ? null : reader.GetString(categoryIconOrdinal)
                         },
                         CreationDate = DateTime.Parse(reader.GetString(creationDateOrdinal)),
                         LastModifiedDate = DateTime.Parse(reader.GetString(lastModifiedDateOrdinal))

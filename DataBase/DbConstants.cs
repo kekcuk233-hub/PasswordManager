@@ -4,6 +4,7 @@ namespace PasswordManager.DataBase
     {
         public const string PasswordTable = "Passwords";
         public const string CategoryTable = "Categories";
+        public const string DefaultCategoryName = "Unassigned";
 
         public enum PasswordFields
         {

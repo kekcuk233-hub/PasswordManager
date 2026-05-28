@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("passwordManager")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8c7a1bb624a0678ccc63621c9864735fd9306b85")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+45ec463ea3e0265a0ae7d040fad2305942c74e4b")]
 [assembly: System.Reflection.AssemblyProductAttribute("passwordManager")]
 [assembly: System.Reflection.AssemblyTitleAttribute("passwordManager")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

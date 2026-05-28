@@ -1,6 +1,4 @@
-using System.ComponentModel;
 using Microsoft.Data.Sqlite;
-using PasswordManager.Models.UserData;
 
 namespace PasswordManager.DataBase
 {
@@ -11,7 +9,7 @@ namespace PasswordManager.DataBase
         private static readonly string sql = $@"
             CREATE TABLE IF NOT EXISTS {DbConstants.CategoryTable}(
                 {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)} INTEGER PRIMARY KEY AUTOINCREMENT,
-                {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)} TEXT,
+                {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)} TEXT not null Unique,
                 {DbConstants.GetFieldName(DbConstants.CategoryFields.Icon)} TEXT
             );
 
@@ -28,45 +26,42 @@ namespace PasswordManager.DataBase
                 FOREIGN KEY ({DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)})
                 REFERENCES {DbConstants.CategoryTable}({DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)})
             );";
-
-        public void Initialize()
-        {
-            using var connection = _context.CreateConnection();
-
-            using var command = new SqliteCommand(sql, connection);
-            command.ExecuteNonQuery();
-
-            InsertDefaultCategory(connection);
-        }
-        private void InsertDefaultCategory(SqliteConnection connection)
-        {
-            try
-            {
-                var checkSql = $@"
-                    SELECT COUNT(*) FROM {DbConstants.CategoryTable} 
-                    WHERE {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)} = 'General'";
-
-                using var checkCommand = new SqliteCommand(checkSql, connection);
-                var count = (long)(checkCommand.ExecuteScalar() ?? 0);
-                
-
-                if (count == 0)
-                {
-                    var insertSql = $@"
-                        INSERT INTO {DbConstants.CategoryTable}(
+        private static readonly string insertDefaultSql = $@"
+        INSERT OR IGNORE INTO {DbConstants.CategoryTable}(
                             {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)}, 
                             {DbConstants.GetFieldName(DbConstants.CategoryFields.Icon)}
                         ) 
-                        VALUES('General', '📁')";
+                        VALUES(
+                            {DbConstants.Param(DbConstants.CategoryFields.CategoryName)}, 
+                            {DbConstants.Param(DbConstants.CategoryFields.Icon)}
+                        )";
 
-                    using var insertCommand = new SqliteCommand(insertSql, connection);
-                    insertCommand.ExecuteNonQuery();
-                }
-            }
-            catch (SqliteException ex)
+        public void Initialize()
+        {
+            try
             {
-                Console.WriteLine($"Error inserting default category: {ex.Message}");
+                using var connection = _context.CreateConnection();
+
+                using var command = new SqliteCommand(sql, connection);
+                command.ExecuteNonQuery();
+
+                InsertDefaultCategory(connection);
             }
+            catch(SqliteException ex)
+            {
+                throw new Exception($"Failed to initialize database: {ex.Message}", ex);
+            }
+        }
+        private void InsertDefaultCategory(SqliteConnection connection)
+        {
+                using var insertCommand = new SqliteCommand(insertDefaultSql, connection);
+
+                insertCommand.Parameters.AddWithValue(
+                    DbConstants.Param(DbConstants.CategoryFields.CategoryName), DbConstants.DefaultCategoryName);
+                insertCommand.Parameters.AddWithValue(
+                    DbConstants.Param(DbConstants.CategoryFields.Icon), (object)DBNull.Value);
+
+                insertCommand.ExecuteNonQuery();
         }
     }
 }
