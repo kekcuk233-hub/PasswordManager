@@ -11,5 +11,6 @@ namespace PasswordManager.DataBase.Repositories
         ResponseMsg<CoreDataModel> Insert(CoreDataModel data);
         ResponseMsg<CoreDataModel> Update(int id, UpdateDto data);
         ResponseMsg<CoreDataModel> Delete(int id);
+        ResponseMsg<CoreDataModel> ReassignCategory(int id, int defaultId);
     }
 }

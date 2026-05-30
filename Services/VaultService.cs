@@ -1,3 +1,4 @@
+using PasswordManager.DataBase;
 using PasswordManager.DataBase.Repositories;
 using PasswordManager.Models.Base;
 using PasswordManager.Models.DTO;
@@ -49,7 +50,7 @@ namespace PasswordManager.Services
 
             if(!data.CategoryId.HasValue)
             {
-                var categoryResponse = _categoryRepo.Get(1);
+                var categoryResponse = _categoryRepo.GetById(1);
                 if(categoryResponse.IsSuccess && categoryResponse.Data != null)
                 {
                     data.CategoryId = categoryResponse.Data.CategoryDataId;
@@ -103,6 +104,23 @@ namespace PasswordManager.Services
 
         public ResponseMsg<CoreDataModel> DeleteEntry(int id)
         {
+            var defaultCategory = _categoryRepo.GetByName(DbConstants.DefaultCategoryName);
+            if (defaultCategory.Data.CategoryDataId == id)
+            {
+                return new ResponseMsg<CoreDataModel>
+                {
+                    IsSuccess = false,
+                    Message = "Cannot delete default Category"
+                };
+            }
+
+            var reassign = _entryRepo.ReassignCategory(id, defaultCategory.Data.CategoryDataId);
+            
+            if(!reassign.IsSuccess)
+            {
+                return reassign;
+            }
+
             return _entryRepo.Delete(id);
         }
     }

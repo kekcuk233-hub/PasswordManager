@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Microsoft.Data.Sqlite;
 using PasswordManager.Models.Base;
 using PasswordManager.Models.DTO;
@@ -82,8 +81,17 @@ namespace PasswordManager.DataBase.Repositories
         WHERE {DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId)} = {DbConstants.Param(DbConstants.PasswordFields.PasswordId)}";
 
         private static readonly string DeleteSql = $@"
-        Delete from {DbConstants.PasswordTable} where 
-        {DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId)} = {DbConstants.Param(DbConstants.PasswordFields.PasswordId)}";
+            Delete from {DbConstants.PasswordTable} where 
+            {DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId)} = {DbConstants.Param(DbConstants.PasswordFields.PasswordId)}";
+        
+        private static readonly string ReassignSql = $@"
+            Update {DbConstants.PasswordTable}
+            set {DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} = 
+                {DbConstants.Param(DbConstants.PasswordFields.CategoryId)}
+            where {DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} = 
+                @OldCategoryId
+            ";
+
         public EntryRepository(DataBaseContext context)
         {
             _context = context;
@@ -354,6 +362,44 @@ namespace PasswordManager.DataBase.Repositories
                 {
                     IsSuccess = false,
                     Message = $"DataBase Error : {ex.Message}"
+                };
+            }
+            catch(Exception ex)
+            {
+                return new ResponseMsg<CoreDataModel>
+                {
+                    IsSuccess = false,
+                    Message = $"Unexcpected Error occurred: {ex.Message}"
+                };
+            }
+        }
+
+        public ResponseMsg<CoreDataModel> ReassignCategory(int id, int defaultId)
+        {
+            try
+            {
+                var db = _context.CreateConnection();
+
+                using var command = new SqliteCommand(ReassignSql, db);
+                command.Parameters.AddWithValue(
+                    DbConstants.Param(DbConstants.CategoryFields.CategoryDataId), defaultId
+                );
+                command.Parameters.AddWithValue("@OldCategoryId", id);
+
+                command.ExecuteNonQuery();
+
+                return new ResponseMsg<CoreDataModel>
+                {
+                    IsSuccess = true,
+                    Message = "Data was updated successfully"
+                };
+            }
+            catch(SqliteException ex)
+            {
+                return new ResponseMsg<CoreDataModel>
+                {
+                    IsSuccess = false,
+                    Message = $"DataBase Error: {ex.Message}"
                 };
             }
             catch(Exception ex)

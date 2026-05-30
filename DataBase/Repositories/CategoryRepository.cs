@@ -9,13 +9,21 @@ namespace PasswordManager.DataBase.Repositories
     {
         private readonly DataBaseContext _context = context;
 
-        private static readonly string GetSql = $@"
+        private static readonly string GetByIdSql = $@"
             select
                 {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)},
                 {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)},
                 {DbConstants.GetFieldName(DbConstants.CategoryFields.Icon)}
             from {DbConstants.CategoryTable} 
             where {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)} = {DbConstants.Param(DbConstants.CategoryFields.CategoryDataId)}";
+
+        private static readonly string GetByNameSql = $@"
+            select
+                {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)},
+                {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)},
+                {DbConstants.GetFieldName(DbConstants.CategoryFields.Icon)}
+            from {DbConstants.CategoryTable} 
+            where {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)} = {DbConstants.Param(DbConstants.CategoryFields.CategoryName)}";
 
         private static readonly string AddSql = $@"
             insert into {DbConstants.CategoryTable}(
@@ -192,14 +200,14 @@ namespace PasswordManager.DataBase.Repositories
             }
         }
 
-        public ResponseMsg<CategoryData> Get(int id)
+        public ResponseMsg<CategoryData> GetById(int id)
         {
             try
             {
                 using var db = _context.CreateConnection();
 
                 var command = db.CreateCommand();
-                command.CommandText = GetSql;
+                command.CommandText = GetByIdSql;
                 command.Parameters.AddWithValue($"{DbConstants.Param(DbConstants.CategoryFields.CategoryDataId)}", id);
                 var reader = command.ExecuteReader();
 
@@ -240,6 +248,63 @@ namespace PasswordManager.DataBase.Repositories
             }
         }
 
+        public ResponseMsg<CategoryData> GetByName(string name)
+        {
+            try
+            {
+                var db = _context.CreateConnection();
+                
+                using var command = new SqliteCommand(GetByNameSql, db);
+                command.Parameters.AddWithValue(
+                    DbConstants.Param(DbConstants.CategoryFields.CategoryName), name
+                );
+
+                var reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    int categoryDataIdOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId));
+                    int categoryNameOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName));
+                    int categoryIconOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.Icon));
+
+                    CategoryData data = new()
+                    {
+                        CategoryDataId = reader.GetInt32(categoryDataIdOrdinal),
+                        CategoryName = reader.GetString(categoryNameOrdinal),
+                        Icon = reader.GetString(categoryIconOrdinal)
+                    };
+
+                    return new ResponseMsg<CategoryData>
+                    {
+                        IsSuccess = true,
+                        Message = "Data Was found",
+                        Data = data
+                    };
+                } 
+
+                return new ResponseMsg<CategoryData>
+                {
+                    IsSuccess = false,
+                    Message = $"There is no category with name = {name}"
+                };
+            }
+            catch(SqliteException ex)
+            {
+                return new ResponseMsg<CategoryData>
+                {
+                    IsSuccess = false,
+                    Message = $"DataBase Error: {ex.Message}"
+                };
+            }
+            catch(Exception ex)
+            {
+                return new ResponseMsg<CategoryData>
+                {
+                    IsSuccess = false,
+                    Message = $"Unexpected Error: {ex.Message}"
+                };
+            }
+        }
         public ResponseMsg<CategoryData> Update(int id, UpdateCategoryDto updateData)
         {
             try

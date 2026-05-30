@@ -9,7 +9,8 @@ namespace PasswordManager.DataBase.Repositories
         ResponseMsg<List<CategoryData>> GetAll();
         ResponseMsg<CategoryData> Add(CategoryData data);
         ResponseMsg<CategoryData> Update(int id, UpdateCategoryDto data);
-        ResponseMsg<CategoryData> Get(int id);
+        ResponseMsg<CategoryData> GetById(int id);
+        ResponseMsg<CategoryData> GetByName(string name);
         ResponseMsg<CategoryData> Delete(int id);
     }
 }
