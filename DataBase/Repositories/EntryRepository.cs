@@ -310,7 +310,7 @@ namespace PasswordManager.DataBase.Repositories
                 command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.Url), data.Url ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.Description), data.Description ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.CategoryId), data.CategoryId ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.LastModifiedDate), DateTime.Now.ToString("o"));
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.LastModifiedDate), DateTime.UtcNow.ToString("o"));
 
                 command.ExecuteNonQuery();
 
@@ -378,11 +378,11 @@ namespace PasswordManager.DataBase.Repositories
         {
             try
             {
-                var db = _context.CreateConnection();
+                using var db = _context.CreateConnection();
 
                 using var command = new SqliteCommand(ReassignSql, db);
                 command.Parameters.AddWithValue(
-                    DbConstants.Param(DbConstants.CategoryFields.CategoryDataId), defaultId
+                    DbConstants.Param(DbConstants.PasswordFields.CategoryId), defaultId
                 );
                 command.Parameters.AddWithValue("@OldCategoryId", id);
 

@@ -3,6 +3,7 @@ using PasswordManager.DataBase.Repositories;
 using PasswordManager.Models.Base;
 using PasswordManager.Models.DTO;
 using PasswordManager.Models.UserData;
+using PasswordManager.Services.Utils;
 
 namespace PasswordManager.Services
 {
@@ -11,11 +12,18 @@ namespace PasswordManager.Services
         
         private readonly IEntryRepository _entryRepo; 
         private readonly ICategoryRepository _categoryRepo;
+        private readonly ICryptoService _cryproService;
+        private readonly UserSession _session;
 
-        public VaultService(IEntryRepository entry, ICategoryRepository category)
+        public VaultService(IEntryRepository entry, 
+                            ICategoryRepository category, 
+                            ICryptoService cryptoService,
+                            UserSession session)
         {
             _entryRepo = entry;
             _categoryRepo = category;
+            _cryproService = cryptoService;
+            _session = session;
         }
 
         public ResponseMsg<CoreDataModel> AddEntry(CoreDataModel data)

@@ -11,9 +11,26 @@ namespace PasswordManager.Core
         private readonly IVaultService _vaultService = container.VaultService;
         private readonly ConsoleMenu _menu = new ConsoleMenu();
         private readonly ConsoleDisplayHelper _display = new ConsoleDisplayHelper();
+        private readonly IAuthService _auth = container.AuthService;
         public void Run()
         {
             Console.WriteLine("Password Manager");
+            Console.WriteLine(@"Choose and option:
+                                1. Register
+                                2. Login");
+            string auth = Console.ReadLine();
+
+            Console.WriteLine("Write the password");
+            string password = Console.ReadLine();
+
+            if(auth == "1") _auth.Register(password);
+            else if (auth == "2") _auth.Login(password);
+            else Console.WriteLine("Choose the option");
+
+            Console.WriteLine("Enter Master Password to unlock:");
+            string pass = Console.ReadLine();
+
+
 
             bool flag = true;
 
@@ -26,6 +43,7 @@ namespace PasswordManager.Core
                 3. Update Data
                 4. Delete data
                 5. Close app
+                6. Check password
                 """;
                 Console.WriteLine(actions);
                 string choice = Console.ReadLine();
@@ -99,5 +117,6 @@ namespace PasswordManager.Core
                 else{Console.WriteLine("Invalid number");}
             }
         }
+
     }
 }
