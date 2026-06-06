@@ -8,9 +8,9 @@ namespace PasswordManager.DataBase.Repositories
     {
         ResponseMsg<List<CoreDataModel>> GetAll();
         ResponseMsg<CoreDataModel> GetById(int id);
-        ResponseMsg<CoreDataModel> Insert(CoreDataModel data);
+        ResponseMsg Insert(CoreDataModel data);
         ResponseMsg<CoreDataModel> Update(int id, UpdateDto data);
-        ResponseMsg<CoreDataModel> Delete(int id);
-        ResponseMsg<CoreDataModel> ReassignCategory(int id, int defaultId);
+        ResponseMsg Delete(int id);
+        ResponseMsg ReassignCategory(int id, int defaultId);
     }
 }

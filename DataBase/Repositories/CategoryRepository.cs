@@ -54,7 +54,7 @@ namespace PasswordManager.DataBase.Repositories
                 {DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)} = {DbConstants.Param(DbConstants.CategoryFields.CategoryDataId)}
             ";
 
-        public ResponseMsg<CategoryData> Add(CategoryData data)
+        public ResponseMsg Add(CategoryData data)
         {
             try
             {
@@ -70,7 +70,7 @@ namespace PasswordManager.DataBase.Repositories
 
                 command.ExecuteNonQuery();
 
-                return new ResponseMsg<CategoryData>
+                return new ResponseMsg
                 {
                     IsSuccess = true,
                     Message = "Category was added successfully"
@@ -79,13 +79,13 @@ namespace PasswordManager.DataBase.Repositories
             catch(SqliteException ex)
             {
                 if (ex.SqliteErrorCode == 19)
-                    return new ResponseMsg<CategoryData>
+                    return new ResponseMsg
                     {
                         IsSuccess = false,
                         Message = $"Category '{data.CategoryName}' already exists"
                     };
 
-                return new ResponseMsg<CategoryData>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = $"Database error: {ex.Message}"
@@ -93,7 +93,7 @@ namespace PasswordManager.DataBase.Repositories
             }
             catch(Exception ex)
             {
-                return new ResponseMsg<CategoryData>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = $"Unexpected error: {ex.Message}"
@@ -101,7 +101,7 @@ namespace PasswordManager.DataBase.Repositories
             }
         }
 
-        public ResponseMsg<CategoryData> Delete(int id)
+        public ResponseMsg Delete(int id)
         {
             try
             {
@@ -116,14 +116,14 @@ namespace PasswordManager.DataBase.Repositories
 
                 if(reader == 0)
                 {
-                    return new ResponseMsg<CategoryData>
+                    return new ResponseMsg
                     {
                         IsSuccess = false,
                         Message = $"There is no category with id = {id}"
                     };
                 }
 
-                return new ResponseMsg<CategoryData>
+                return new ResponseMsg
                 {
                     IsSuccess = true,
                     Message = "Category Was deleted successfully"
@@ -131,7 +131,7 @@ namespace PasswordManager.DataBase.Repositories
             }
             catch(SqliteException ex)
             {
-                return new ResponseMsg<CategoryData>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = $"Database error: {ex.Message}"
@@ -139,7 +139,7 @@ namespace PasswordManager.DataBase.Repositories
             }
             catch(Exception ex)
             {
-                return new ResponseMsg<CategoryData>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = $"Unexpected error: {ex.Message}"
@@ -209,7 +209,7 @@ namespace PasswordManager.DataBase.Repositories
                 var command = db.CreateCommand();
                 command.CommandText = GetByIdSql;
                 command.Parameters.AddWithValue($"{DbConstants.Param(DbConstants.CategoryFields.CategoryDataId)}", id);
-                var reader = command.ExecuteReader();
+                using var reader = command.ExecuteReader();
 
                 if (reader.Read())
                 {
@@ -221,7 +221,7 @@ namespace PasswordManager.DataBase.Repositories
                     {
                         CategoryDataId = id,
                         CategoryName = reader.GetString(categoryNameOrdinal),
-                        Icon = reader.GetString(categoryIconOrdinal)
+                        Icon = reader.IsDBNull(categoryIconOrdinal) ? null : reader.GetString(categoryIconOrdinal)
                     };
 
                     return new ResponseMsg<CategoryData>
@@ -244,6 +244,14 @@ namespace PasswordManager.DataBase.Repositories
                 {
                     IsSuccess = false,
                     Message = $"Db Error: {ex.Message}"
+                };
+            }
+            catch(Exception ex)
+            {
+                return new ResponseMsg<CategoryData> 
+                {
+                    IsSuccess = false,
+                    Message = $"Unexpected Error: {ex.Message}"
                 };
             }
         }

@@ -7,10 +7,10 @@ namespace PasswordManager.DataBase.Repositories
     public interface ICategoryRepository
     {
         ResponseMsg<List<CategoryData>> GetAll();
-        ResponseMsg<CategoryData> Add(CategoryData data);
+        ResponseMsg Add(CategoryData data);
         ResponseMsg<CategoryData> Update(int id, UpdateCategoryDto data);
         ResponseMsg<CategoryData> GetById(int id);
         ResponseMsg<CategoryData> GetByName(string name);
-        ResponseMsg<CategoryData> Delete(int id);
+        ResponseMsg Delete(int id);
     }
 }

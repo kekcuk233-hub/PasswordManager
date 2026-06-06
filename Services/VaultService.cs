@@ -7,40 +7,31 @@ using PasswordManager.Services.Utils;
 
 namespace PasswordManager.Services
 {
-    public class VaultService : IVaultService
+    public class VaultService(IEntryRepository entry,
+                        ICategoryRepository category,
+                        ICryptoService cryptoService,
+                        UserSession session) : IVaultService
     {
         
-        private readonly IEntryRepository _entryRepo; 
-        private readonly ICategoryRepository _categoryRepo;
-        private readonly ICryptoService _cryproService;
-        private readonly UserSession _session;
+        private readonly IEntryRepository _entryRepo = entry; 
+        private readonly ICategoryRepository _categoryRepo = category;
+        private readonly ICryptoService _cryproService = cryptoService;
+        private readonly UserSession _session = session;
 
-        public VaultService(IEntryRepository entry, 
-                            ICategoryRepository category, 
-                            ICryptoService cryptoService,
-                            UserSession session)
-        {
-            _entryRepo = entry;
-            _categoryRepo = category;
-            _cryproService = cryptoService;
-            _session = session;
-        }
-
-        public ResponseMsg<CoreDataModel> AddEntry(CoreDataModel data)
+        public ResponseMsg AddEntry(CoreDataModel data)
         {
             if(string.IsNullOrWhiteSpace(data.Website))
             {
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = "Please, provide Website name",
-                    Data = null
                 };
             }
 
             if(string.IsNullOrWhiteSpace(data.Email))
             {
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = "Please, provide Email/Username"
@@ -49,7 +40,7 @@ namespace PasswordManager.Services
 
             if(string.IsNullOrWhiteSpace(data.Password))
             {
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = "Please, provide a strong password or generate it"
@@ -110,12 +101,12 @@ namespace PasswordManager.Services
             return _entryRepo.Update(id, updateDto);
         }
 
-        public ResponseMsg<CoreDataModel> DeleteEntry(int id)
+        public ResponseMsg DeleteEntry(int id)
         {
             var defaultCategory = _categoryRepo.GetByName(DbConstants.DefaultCategoryName);
             if (defaultCategory.Data.CategoryDataId == id)
             {
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = "Cannot delete default Category"
@@ -130,6 +121,45 @@ namespace PasswordManager.Services
             }
 
             return _entryRepo.Delete(id);
+        }
+
+        public ResponseMsg<List<CategoryData>> GetAllCategory()
+        {
+            return _categoryRepo.GetAll();
+        }
+
+        public ResponseMsg<CategoryData> GetCategoryById(int id)
+        {   
+            return _categoryRepo.GetById(id);
+        }
+
+        public ResponseMsg AddCategory(CategoryData model)
+        {
+            if(string.IsNullOrWhiteSpace(model.CategoryName))
+            {
+                return ResponseMsg.Failure("Please, write a name for category");
+            }
+
+            return _categoryRepo.Add(model);
+        }
+
+        public ResponseMsg<CategoryData> UpdateCategory(int id, UpdateCategoryDto dto)
+        {
+            if(string.IsNullOrWhiteSpace(dto.CategoryName))
+            {
+                return new ResponseMsg<CategoryData>
+                {
+                    IsSuccess = false,
+                    Message = "Please, write a name for category"
+                };
+            }
+
+            return _categoryRepo.Update(id, dto);
+        }
+
+        public ResponseMsg DeleteCategory(int id)
+        {
+            return _categoryRepo.Delete(id);
         }
     }
 }

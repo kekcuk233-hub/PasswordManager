@@ -251,7 +251,7 @@ namespace PasswordManager.DataBase.Repositories
                 };
             }
         }
-        public ResponseMsg<CoreDataModel> Insert(CoreDataModel data)
+        public ResponseMsg Insert(CoreDataModel data)
         {
             try
             {   
@@ -271,7 +271,7 @@ namespace PasswordManager.DataBase.Repositories
 
                 command.ExecuteNonQuery();
                 
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = true,
                     Message = "Data Was added successfully"
@@ -279,7 +279,7 @@ namespace PasswordManager.DataBase.Repositories
             }
             catch(SqliteException ex)
             {
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = $"DataBase Error : {ex.Message}"
@@ -287,7 +287,7 @@ namespace PasswordManager.DataBase.Repositories
             }
             catch(Exception ex)
             {
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = $"Unexcpected Error occurred: {ex.Message}"
@@ -338,7 +338,7 @@ namespace PasswordManager.DataBase.Repositories
             }
         }
 
-        public ResponseMsg<CoreDataModel> Delete(int id)
+        public ResponseMsg Delete(int id)
         {
             try 
             {
@@ -350,7 +350,7 @@ namespace PasswordManager.DataBase.Repositories
 
                 command.ExecuteNonQuery();
 
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = true,
                     Message = "Data was deleted successfully"
@@ -358,7 +358,7 @@ namespace PasswordManager.DataBase.Repositories
             }
             catch (SqliteException ex)
             {
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = $"DataBase Error : {ex.Message}"
@@ -366,7 +366,7 @@ namespace PasswordManager.DataBase.Repositories
             }
             catch(Exception ex)
             {
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = $"Unexcpected Error occurred: {ex.Message}"
@@ -374,7 +374,7 @@ namespace PasswordManager.DataBase.Repositories
             }
         }
 
-        public ResponseMsg<CoreDataModel> ReassignCategory(int id, int defaultId)
+        public ResponseMsg ReassignCategory(int id, int defaultId)
         {
             try
             {
@@ -388,7 +388,7 @@ namespace PasswordManager.DataBase.Repositories
 
                 command.ExecuteNonQuery();
 
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = true,
                     Message = "Data was updated successfully"
@@ -396,7 +396,7 @@ namespace PasswordManager.DataBase.Repositories
             }
             catch(SqliteException ex)
             {
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = $"DataBase Error: {ex.Message}"
@@ -404,7 +404,7 @@ namespace PasswordManager.DataBase.Repositories
             }
             catch(Exception ex)
             {
-                return new ResponseMsg<CoreDataModel>
+                return new ResponseMsg
                 {
                     IsSuccess = false,
                     Message = $"Unexcpected Error occurred: {ex.Message}"

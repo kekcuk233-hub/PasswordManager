@@ -1,5 +1,4 @@
 using Microsoft.Data.Sqlite;
-using PasswordManager.Models;
 
 namespace PasswordManager.DataBase
 {
@@ -16,7 +15,7 @@ namespace PasswordManager.DataBase
             {
                 DataSource = _dbPath,
                 Mode = SqliteOpenMode.ReadWriteCreate,
-                Password = Convert.ToHexString(key)
+                Password = Convert.ToHexString(key),
             };
 
             var connection = new SqliteConnection(connectionStringBuilder.ToString());
@@ -25,10 +24,13 @@ namespace PasswordManager.DataBase
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = @"
-                    PRAGMA foreign_keys = ON;
-                    PRAGMA journal_mode = WAL;
-                    PRAGMA cipher_kdf_algorithm = 'PBKDF2_HMAC_SHA256';
-                    PRAGMA cipher_page_size = 4096;
+                    PRAGMA cipher                = 'aes256cbc';
+                    PRAGMA kdf_algorithm         = PBKDF2_HMAC_SHA512;
+                    PRAGMA kdf_iter              = 256000;
+                    PRAGMA cipher_page_size      = 4096;
+                    PRAGMA cipher_hmac_algorithm = HMAC_SHA512;
+                    PRAGMA foreign_keys          = ON;
+                    PRAGMA journal_mode          = WAL;
                 ";
                 command.ExecuteNonQuery();
             }

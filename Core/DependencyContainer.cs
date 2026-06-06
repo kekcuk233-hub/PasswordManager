@@ -2,6 +2,7 @@ using PasswordManager.DataBase;
 using PasswordManager.DataBase.Repositories;
 using PasswordManager.Services;
 using PasswordManager.Services.Utils;
+using PasswordManager.UI;
 
 namespace PasswordManager.Core
 {
@@ -16,6 +17,8 @@ namespace PasswordManager.Core
         public IPasswordGeneratorService PasswordGenerator {get; }
         public DataBaseInitializer DbInit {get; }
         public IAuthService AuthService {get; }
+        public ConsoleDisplayHelper Display {get; }
+        public ConsoleMenu Menu {get; }
 
         public DependencyContainer(string dbPath, string metaPath)
         {
@@ -28,6 +31,8 @@ namespace PasswordManager.Core
             DbInit = new DataBaseInitializer(DbContext);
             AuthService = new AuthService(UserSession, CryptoService, DbInit, metaPath);
             VaultService = new VaultService(EntryRepo, CategoryRepo, CryptoService, UserSession);
+            Display = new ConsoleDisplayHelper();
+            Menu = new ConsoleMenu();
         }
     }
 }

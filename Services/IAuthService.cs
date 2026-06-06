@@ -4,8 +4,8 @@ namespace PasswordManager.Services
 {
     public interface IAuthService
     {
-        public ResponseMsg Register(string masterPassword);
-        public ResponseMsg Login(string masterPassword);
-        public void Logout();
+        ResponseMsg Register(string masterPassword);
+        ResponseMsg Login(string masterPassword);
+        void Logout();
     }
 }
