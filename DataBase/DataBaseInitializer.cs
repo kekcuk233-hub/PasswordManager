@@ -54,14 +54,14 @@ namespace PasswordManager.DataBase
         }
         private void InsertDefaultCategory(SqliteConnection connection)
         {
-                using var insertCommand = new SqliteCommand(insertDefaultSql, connection);
+            using var insertCommand = new SqliteCommand(insertDefaultSql, connection);
 
-                insertCommand.Parameters.AddWithValue(
-                    DbConstants.Param(DbConstants.CategoryFields.CategoryName), DbConstants.DefaultCategoryName);
-                insertCommand.Parameters.AddWithValue(
-                    DbConstants.Param(DbConstants.CategoryFields.Icon), (object)DBNull.Value);
+            insertCommand.Parameters.AddWithValue(
+                DbConstants.Param(DbConstants.CategoryFields.CategoryName), DbConstants.DefaultCategoryName);
+            insertCommand.Parameters.AddWithValue(
+                DbConstants.Param(DbConstants.CategoryFields.Icon), (object)DBNull.Value);
 
-                insertCommand.ExecuteNonQuery();
+            insertCommand.ExecuteNonQuery();
         }
     }
 }

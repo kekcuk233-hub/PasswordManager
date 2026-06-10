@@ -84,6 +84,26 @@ namespace PasswordManager.DataBase.Repositories
             Delete from {DbConstants.PasswordTable} where 
             {DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId)} = {DbConstants.Param(DbConstants.PasswordFields.PasswordId)}";
         
+         private static readonly string GetByCategoryIdSql = $@"
+        SELECT
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Website)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Email)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Password)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Url)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.Description)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CreationDate)},
+            p.{DbConstants.GetFieldName(DbConstants.PasswordFields.LastModifiedDate)},
+            c.{DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)},
+            c.{DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName)},
+            c.{DbConstants.GetFieldName(DbConstants.CategoryFields.Icon)} 
+        FROM {DbConstants.PasswordTable} p
+        LEFT JOIN {DbConstants.CategoryTable} c
+            ON p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} = 
+               c.{DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId)}
+        WHERE p.{DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} = {DbConstants.Param(DbConstants.PasswordFields.CategoryId)}";
+
         private static readonly string ReassignSql = $@"
             Update {DbConstants.PasswordTable}
             set {DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId)} = 
@@ -373,7 +393,82 @@ namespace PasswordManager.DataBase.Repositories
                 };
             }
         }
+        public ResponseMsg<List<CoreDataModel>> GetByCategoryId(int id)
+        {
+            List<CoreDataModel> listData= [];
 
+            try
+            {
+                using var db = _context.CreateConnection();
+
+                var command = db.CreateCommand();
+                command.CommandText = GetByCategoryIdSql;
+                
+                command.Parameters.AddWithValue(DbConstants.Param(DbConstants.PasswordFields.CategoryId), id);
+
+                using var reader = command.ExecuteReader();
+
+                int passwordIdOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.PasswordId));
+                int websiteOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Website));
+                int emailOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Email));
+                int passwordOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Password));
+                int urlOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Url));
+                int descriptionOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.Description));
+                int categoryIdOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.CategoryId));
+                int creationDateOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.CreationDate));
+                int lastModifiedDateOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.PasswordFields.LastModifiedDate));
+                int categoryDataIdOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryDataId));
+                int categoryNameOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.CategoryName));
+                int categoryIconOrdinal = reader.GetOrdinal(DbConstants.GetFieldName(DbConstants.CategoryFields.Icon));
+                    
+                while (reader.Read())
+                {
+                    CoreDataModel data = new()
+                    {
+                        PasswordId = reader.GetInt32(passwordIdOrdinal),
+                        Website = reader.GetString(websiteOrdinal),
+                        Email = reader.GetString(emailOrdinal),
+                        Password = reader.GetString(passwordOrdinal),
+                        Url = reader.IsDBNull(urlOrdinal) ? null : reader.GetString(urlOrdinal),
+                        Description = reader.IsDBNull(descriptionOrdinal) ? null : reader.GetString(descriptionOrdinal),
+                        CategoryId = reader.IsDBNull(categoryIdOrdinal) ? null : reader.GetInt32(categoryIdOrdinal),
+                        Category = reader.IsDBNull(categoryDataIdOrdinal) ? null : new CategoryData
+                        {
+                            CategoryDataId = reader.GetInt32(categoryDataIdOrdinal),
+                            CategoryName = reader.GetString(categoryNameOrdinal),
+                            Icon = reader.IsDBNull(categoryIconOrdinal) ? null : reader.GetString(categoryIconOrdinal)
+                        },
+                        CreationDate = DateTime.Parse(reader.GetString(creationDateOrdinal)),
+                        LastModifiedDate = DateTime.Parse(reader.GetString(lastModifiedDateOrdinal))
+                    };
+                    listData.Add(data);
+                }
+
+                return new ResponseMsg<List<CoreDataModel>>
+                {
+                    IsSuccess = true,
+                    Message = $"Entry with ID {id} retrieved successfully",
+                    Data = listData
+                };
+            }
+                
+            catch(SqliteException ex)
+            {
+                return new ResponseMsg<List<CoreDataModel>>
+                {
+                    IsSuccess = false, 
+                    Message = $"DataBase Error: {ex.Message}"
+                };
+            }
+            catch(Exception ex)
+            {
+                return new ResponseMsg<List<CoreDataModel>>
+                {
+                    IsSuccess = false,
+                    Message = $"Unexcpected Error occurred: {ex.Message}"
+                };
+            }
+        }
         public ResponseMsg ReassignCategory(int id, int defaultId)
         {
             try

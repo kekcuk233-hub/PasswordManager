@@ -103,22 +103,8 @@ namespace PasswordManager.Services
 
         public ResponseMsg DeleteEntry(int id)
         {
-            var defaultCategory = _categoryRepo.GetByName(DbConstants.DefaultCategoryName);
-            if (defaultCategory.Data.CategoryDataId == id)
-            {
-                return new ResponseMsg
-                {
-                    IsSuccess = false,
-                    Message = "Cannot delete default Category"
-                };
-            }
-
-            var reassign = _entryRepo.ReassignCategory(id, defaultCategory.Data.CategoryDataId);
-            
-            if(!reassign.IsSuccess)
-            {
-                return reassign;
-            }
+            var data = _entryRepo.GetById(id);
+            if (!data.IsSuccess) return ResponseMsg.Failure($"There is no Entry with id = {id}");
 
             return _entryRepo.Delete(id);
         }
@@ -159,6 +145,23 @@ namespace PasswordManager.Services
 
         public ResponseMsg DeleteCategory(int id)
         {
+            var defaultCategory = _categoryRepo.GetByName(DbConstants.DefaultCategoryName);
+            if (defaultCategory.Data.CategoryDataId == id)
+            {
+                return new ResponseMsg
+                {
+                    IsSuccess = false,
+                    Message = "Cannot delete default Category"
+                };
+            }
+
+            var data = _entryRepo.GetByCategoryId(id);
+
+            foreach(var d in data.Data)
+            {
+                _entryRepo.ReassignCategory(id, defaultCategory.Data.CategoryDataId);
+            }
+
             return _categoryRepo.Delete(id);
         }
     }

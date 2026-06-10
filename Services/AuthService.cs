@@ -34,19 +34,26 @@ namespace PasswordManager.Services
             byte[] derivedKey = _crypto.DeriveKey(masterPassword, salt);
             string passwordHash = _crypto.HashPassword(masterPassword);
 
-            var meta = new VaultMeta
-            {
-                KeySalt = Convert.ToHexString(salt),
-                PasswordHash = passwordHash
-            };
-
-            File.WriteAllText(_metaPath, JsonSerializer.Serialize(meta));
-
             _session.SetKey(derivedKey);
 
-            _dbInit.Initialize();
+            try
+            {
+                _dbInit.Initialize();
 
-            return ResponseMsg.Success("Vault created successfully");
+                var meta = new VaultMeta
+                {
+                    KeySalt = Convert.ToHexString(salt),
+                    PasswordHash = passwordHash
+                };
+
+                File.WriteAllText(_metaPath, JsonSerializer.Serialize(meta));
+
+                return ResponseMsg.Success("Vault created successfully");
+            }
+            catch(Exception ex)
+            {
+                return ResponseMsg.Failure($"Unexpected Error: {ex.Message}"); 
+            }
         }
         public ResponseMsg Login(string masterPassword)
         {

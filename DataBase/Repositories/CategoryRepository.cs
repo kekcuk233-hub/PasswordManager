@@ -260,14 +260,14 @@ namespace PasswordManager.DataBase.Repositories
         {
             try
             {
-                var db = _context.CreateConnection();
+                using var db = _context.CreateConnection();
                 
                 using var command = new SqliteCommand(GetByNameSql, db);
                 command.Parameters.AddWithValue(
                     DbConstants.Param(DbConstants.CategoryFields.CategoryName), name
                 );
 
-                var reader = command.ExecuteReader();
+                using var reader = command.ExecuteReader();
 
                 if (reader.Read())
                 {
@@ -279,7 +279,7 @@ namespace PasswordManager.DataBase.Repositories
                     {
                         CategoryDataId = reader.GetInt32(categoryDataIdOrdinal),
                         CategoryName = reader.GetString(categoryNameOrdinal),
-                        Icon = reader.GetString(categoryIconOrdinal)
+                        Icon = reader.IsDBNull(categoryIconOrdinal) ? null : reader.GetString(categoryIconOrdinal)
                     };
 
                     return new ResponseMsg<CategoryData>
