@@ -1,0 +1,10 @@
+{
+  "background_color": "#ffffff",
+  "description": "PasswordManagerUI",
+  "display": "standalone",
+  "name": "PasswordManagerUI",
+  "short_name": "PasswordManagerUI",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "scope": "/"
+}
