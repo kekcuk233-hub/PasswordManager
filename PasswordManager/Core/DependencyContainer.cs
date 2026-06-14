@@ -8,31 +8,27 @@ namespace PasswordManager.Core
 {
     public class DependencyContainer
     {
-        public UserSession UserSession { get; }
-        public DataBaseContext DbContext {get; }
-        public IEntryRepository EntryRepo {get; }
-        public ICategoryRepository CategoryRepo {get; }
-        public IVaultService VaultService {get;}
-        public ICryptoService CryptoService{get; }
-        public IPasswordGeneratorService PasswordGenerator {get; }
-        public DataBaseInitializer DbInit {get; }
-        public IAuthService AuthService {get; }
-        public ConsoleDisplayHelper Display {get; }
-        public ConsoleMenu Menu {get; }
+        public IVaultService             VaultService     { get; }
+        public ICryptoService            CryptoService    { get; }
+        public IPasswordGeneratorService PasswordGenerator { get; }
+        public IAuthService              AuthService      { get; }
+        public IDisplayHandler           Display          { get; }
+        public IMenuHandler              Menu             { get; }
 
         public DependencyContainer(string dbPath, string metaPath)
         {
-            UserSession = new UserSession();
-            DbContext = new DataBaseContext(dbPath, UserSession);
-            EntryRepo = new EntryRepository(DbContext);
-            CategoryRepo = new CategoryRepository(DbContext);
-            CryptoService = new CryptoService();
+            var userSession   = new UserSession();
+            var dbContext     = new DataBaseContext(dbPath, userSession);
+            var entryRepo     = new EntryRepository(dbContext);
+            var categoryRepo  = new CategoryRepository(dbContext);
+            var dbInit        = new DataBaseInitializer(dbContext);
+
+            CryptoService     = new CryptoService(userSession);
             PasswordGenerator = new PasswordGeneratorService();
-            DbInit = new DataBaseInitializer(DbContext);
-            AuthService = new AuthService(UserSession, CryptoService, DbInit, metaPath);
-            VaultService = new VaultService(EntryRepo, CategoryRepo, CryptoService, UserSession);
-            Display = new ConsoleDisplayHelper();
-            Menu = new ConsoleMenu();
+            AuthService       = new AuthService(userSession, CryptoService, dbInit, metaPath);
+            VaultService      = new VaultService(entryRepo, categoryRepo, CryptoService, userSession);
+            Display           = new ConsoleDisplayHelper();
+            Menu              = new ConsoleMenu();
         }
     }
 }

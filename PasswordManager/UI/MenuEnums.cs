@@ -1,4 +1,4 @@
-namespace PasswordManager
+namespace PasswordManager.UI
 {
     public enum AuthMenuOption
     {

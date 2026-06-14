@@ -1,0 +1,30 @@
+# Build outputs
+PasswordManager/bin/
+PasswordManager/obj/
+PasswordManagerUI/PasswordManagerUI/bin/
+PasswordManagerUI/PasswordManagerUI/obj/
+
+# VS Code
+PasswordManagerUI/.vscode/
+PasswordManagerUI/.run/
+
+# NuGet
+PasswordManagerUI/PasswordManagerUI/.nuget/
+
+# Uno
+PasswordManagerUI/PasswordManagerUI/.uno/
+
+# App specific — NEVER commit these
+PasswordManager/data.db
+PasswordManager/data.db-wal
+PasswordManager/data.db-shm
+PasswordManager/meta
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+
+# Logs
+*.log

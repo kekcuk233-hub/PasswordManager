@@ -15,7 +15,7 @@ namespace PasswordManager.Services
         
         private readonly IEntryRepository _entryRepo = entry; 
         private readonly ICategoryRepository _categoryRepo = category;
-        private readonly ICryptoService _cryproService = cryptoService;
+        private readonly ICryptoService _cryptoService = cryptoService;
         private readonly UserSession _session = session;
 
         public ResponseMsg AddEntry(CoreDataModel data)
@@ -109,7 +109,7 @@ namespace PasswordManager.Services
             return _entryRepo.Delete(id);
         }
 
-        public ResponseMsg<List<CategoryData>> GetAllCategory()
+        public ResponseMsg<List<CategoryData>> GetAllCategories()
         {
             return _categoryRepo.GetAll();
         }
@@ -163,6 +163,11 @@ namespace PasswordManager.Services
             }
 
             return _categoryRepo.Delete(id);
+        }
+
+        public string RevealPassword(CoreDataModel entry)
+        {
+            return _cryptoService.Decrypt(entry.Password);
         }
     }
 }

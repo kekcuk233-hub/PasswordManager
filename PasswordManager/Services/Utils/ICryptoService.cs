@@ -9,5 +9,7 @@ namespace PasswordManager.Services.Utils
         //For BCrypt
         string HashPassword(string masterPassword);
         bool VerifyPassowrd(string password, string storingHash);
+        string Encrypt(string plainText);
+        string Decrypt(string cipherText);
     }
 }

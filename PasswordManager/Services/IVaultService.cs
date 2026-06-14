@@ -11,10 +11,11 @@ namespace PasswordManager.Services
         ResponseMsg<List<CoreDataModel>> GetAllEntries();
         ResponseMsg<CoreDataModel> UpdateEntry(int id, UpdateDto updateDto);
         ResponseMsg DeleteEntry(int id);
-        ResponseMsg<List<CategoryData>> GetAllCategory();
+        ResponseMsg<List<CategoryData>> GetAllCategories();
         ResponseMsg<CategoryData> GetCategoryById(int id);
         ResponseMsg AddCategory(CategoryData model);
         ResponseMsg<CategoryData> UpdateCategory(int id, UpdateCategoryDto dto);
         ResponseMsg DeleteCategory(int id);
+        string RevealPassword(CoreDataModel entry);
     }
 }

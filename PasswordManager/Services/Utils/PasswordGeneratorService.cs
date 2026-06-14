@@ -57,13 +57,13 @@ namespace PasswordManager.Services.Utils
         {
             var password = new StringBuilder();
             int limit    = 256 - (256 % pool.Length);
+            Span<byte> buffer = stackalloc byte[1];
 
             for (int i = 0; i < length; i++)
             {
                 byte randomByte;
                 do
                 {
-                    Span<byte> buffer = stackalloc byte[1];
                     RandomNumberGenerator.Fill(buffer);
                     randomByte = buffer[0];
                 }
@@ -110,6 +110,21 @@ namespace PasswordManager.Services.Utils
                 <= 6 => PasswordStrength.Strong,
                 _    => PasswordStrength.VeryStrong
             };
+        }
+        public bool TryGenerate(PasswordOptions options, out string? password, out string? error)
+        {
+            try
+            {
+                password = Generate(options);
+                error    = null;
+                return true;
+            }
+            catch (ArgumentException ex)
+            {
+                password = null;
+                error    = ex.Message;
+                return false;
+            }
         }
     }
 
